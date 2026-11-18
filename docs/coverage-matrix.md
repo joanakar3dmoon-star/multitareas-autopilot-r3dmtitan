@@ -50,7 +50,7 @@
 - SQLite: cola persistente, idempotencia, auditoría, leases, recuperación y outbox de eventos mínimos.
 - Catálogo: 81 tareas cargadas y validadas; 29 handlers deterministas locales (ALPHA 17, BETA 6, GAMMA 6). Las tareas restantes sin handler quedan en NEEDS_ADAPTER.
 - CI: 84 pruebas unitarias y de integración local superadas en GitHub Actions con Python 3.11 y compileall.
-- Cerebro: evento local y cliente HMAC preparado; roundtrip loopback validado, falta endpoint receptor real, ruta confirmada y roundtrip remoto.
+- Cerebro: evento local y cliente HMAC preparado; roundtrip loopback validado, receptor definido en QUASAR PR #123; falta merge, despliegue y roundtrip remoto.
 - Multifunción: cliente explícito a /api/pulpos/jobs; handoff loopback validado, permanece desactivado por defecto y la API objetivo del otro repositorio no se considera desplegada.
 - Pagos: helper HMAC genérico y ledger local idempotente; no es integración de Stripe/Bizum ni conciliación bancaria.
 - IA: adaptador Ollama local y planificador por catálogo; no se ha probado una inferencia real en el hosting.
