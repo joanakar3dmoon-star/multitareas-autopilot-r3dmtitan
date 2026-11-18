@@ -17,12 +17,13 @@ Receptor previsto en QUASAR PR #123 (en revisión; no desplegado). Verificar mer
 
 ## Superagente Multifunción
 - Destino previsto: `POST /api/pulpos/jobs`.
-- Bearer token dedicado + `Idempotency-Key`.
+- Cabecera `X-Pulpo-Token` (debe coincidir con `PULPO_API_TOKEN` en Multifunción) + `Idempotency-Key`.
 - Solo ALPHA/BETA/GAMMA y payload allowlist (`task_id`, `vertical`, `task_key`, `input_ref`).
 - No enviar credenciales, clientes, datos bancarios, pagos, ni contenido libre no revisado.
 - Activación: `MULTIFUNCION_BRIDGE_ENABLED=1`, URL HTTPS y token >=32 caracteres.
+- Multitareas expone `POST /api/bridges/multifuncion/jobs`, autenticado con `X-Multitareas-Token`; solo envía cuando la solicitud lo pide expresamente. No hay reenvío automático de cada tarea local.
 
-API prevista en Superagente Multifunción PR #4 (en revisión; no desplegada). La forma del endpoint debe confirmarse con su OpenAPI/contrato final antes de la activación. El cliente es deliberadamente explícito y no se ejecuta desde el worker automáticamente.
+API implementada en la rama de Superagente Multifunción PR #4 (pendiente de merge y despliegue). El contrato comprobado en el código de la rama usa `POST /api/pulpos/jobs`, `X-Pulpo-Token`, `worker` y `Idempotency-Key`. El cliente usa transporte HTTPS sin redirecciones y rechaza datos sensibles anidados. La activación exige que la API receptora esté desplegada y que su `PULPO_API_TOKEN` coincida con `MULTIFUNCION_API_TOKEN` en Multitareas.
 
 ## No activado
 Ambos adaptadores están deshabilitados por defecto. CI local/mocks no verifican DNS, TLS, secretos, autenticación, endpoints en hosting ni persistencia de los servicios remotos.
