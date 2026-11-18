@@ -9,13 +9,15 @@ permissions:
 jobs:
   unit:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Compile
-        run: python -m compileall -q core pulpos tests run_worker.py
-      - name: Run unit tests
+      - name: Compile all Python modules
+        run: python -m compileall -q core pulpos bots connectors tests api_server.py run_worker.py run_server.py
+      - name: Run unit and local integration tests
         run: python -m unittest discover -s tests -v
+      - name: Build container image (no push)
+        run: docker build --tag multitareas-autopilot:ci .

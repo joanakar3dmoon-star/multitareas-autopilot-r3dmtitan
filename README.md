@@ -1,6 +1,6 @@
 # R3DM TITAN — Multitareas Autopilot
 
-**Estado: runtime local, catálogo de 81 tareas, 29 handlers iniciales, planificador central y puentes preparados; conexiones comerciales reales y producción pendientes.**
+**Estado: runtime local, API autenticada, catálogo de 81 tareas, 29 handlers iniciales, planificador central y puentes preparados; conexiones comerciales reales y producción pendientes.**
 
 Este repositorio es el negocio independiente **Multitareas Autopilot** dentro del ecosistema R3DM/TITAN. Mantiene código, configuración, datos, clientes, operaciones y cobros separados de QUASAR y de Superagente Multifunción. La reutilización entre proyectos se hace mediante adaptadores y contratos versionados, sin fusionar sus repositorios.
 
@@ -15,13 +15,13 @@ Este repositorio es el negocio independiente **Multitareas Autopilot** dentro de
 - Catálogo versionado de 81 tareas: ALPHA 37, BETA 29, GAMMA 15; tareas sin handler se detienen en NEEDS_ADAPTER.
 - 29 handlers locales deterministas: ALPHA 17, BETA 6 y GAMMA 6.
 - Planificador central asistido por IA que solo propone tareas del catálogo y nunca las ejecuta.
+- API HTTP autenticada para encolar tareas, consultar estado, ver cobertura y pedir planes; worker thread integrado.
 - Cola SQLite durable con reclamación atómica, idempotencia, auditoría, leases, recuperación y outbox.
-- Runtime por lotes, scheduler opt-in y punto de entrada run_worker.py.
 - Adaptador Ollama restringido a localhost; IA remota desactivada por defecto.
 - Marketplace desactivado por defecto.
 - Helper HMAC genérico y ledger idempotente de cobros entrantes en estado PENDING_RECONCILIATION.
 - Puente HMAC preparado hacia Cerebro y cliente explícito de trabajos hacia Multifunción, ambos pendientes de conexión remota.
-- CI de Python 3.11: 76 pruebas unitarias/integración local superadas en el último run verificado.
+- Dockerfile y CI con compileall, 83 pruebas unitarias/integración local y construcción de imagen sin publicar.
 
 ## Límites financieros
 
@@ -32,12 +32,17 @@ Los agentes no pueden gastar, comprar, contratar suscripciones, transferir, reti
 Requiere Python 3.11 o posterior y solo usa la biblioteca estándar.
 
 ```sh
-python run_worker.py --once
-python run_worker.py
-python -m unittest discover -s tests -v
+export MULTITAREAS_API_TOKEN="$(openssl rand -hex 32)"
+python run_server.py
 ```
 
-La base SQLite se crea por defecto en data/multitareas.db. Configura MULTITAREAS_DATABASE para cambiar su ubicación. El scheduler no arranca al importar módulos. El dispatcher de Cerebro no envía nada sin CEREBRO_BASE_URL, CEREBRO_SHARED_SECRET y CEREBRO_EVENTS_PATH válidos.
+- GET /health — health check básico.
+- GET /api/coverage — requiere cabecera X-Multitareas-Token.
+- POST /api/tasks — requiere token; crea una tarea y devuelve 202.
+- GET /api/tasks/{task_id} — requiere token.
+- POST /api/plans — requiere token; genera una propuesta, no la ejecuta.
+
+La base SQLite se crea por defecto en data/multitareas.db. Configura MULTITAREAS_DATABASE para cambiar su ubicación. Para Docker, usa el volumen persistente /data y MULTITAREAS_DATABASE=/data/multitareas.db. El servicio combina API y worker en un proceso y debe operar con una sola réplica mientras use SQLite.
 
 ## Estado de integración y producción
 
