@@ -7,7 +7,6 @@ import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from unittest.mock import patch
-
 from core.store import TaskStore
 from connectors.bridge.cerebro import CerebroBridge
 from connectors.bridge.dispatcher import BridgeDispatcher
@@ -28,7 +27,8 @@ class LocalBridgeServer:
             def do_POST(self):
                 length = int(self.headers.get("Content-Length", "0"))
                 raw = self.rfile.read(length)
-                records.append({"path": self.path, "headers": dict(self.headers),
+                records.append({"path": self.path,
+                                "headers": {k.lower(): v for k, v in self.headers.items()},
                                 "raw": raw, "body": json.loads(raw.decode())})
                 body = json.dumps({"accepted": True, "job_id": "local-job-1"}).encode()
                 self.send_response(202)
@@ -69,8 +69,8 @@ class LocalIntegrationTests(unittest.TestCase):
         record = self.http.records[0]
         import hashlib, hmac
         expected = "sha256=" + hmac.new(("s" * 40).encode(), record["raw"], hashlib.sha256).hexdigest()
-        self.assertEqual(record["headers"]["X-R3DM-Signature"], expected)
-        self.assertEqual(record["headers"]["Idempotency-Key"], record["body"]["event"]["event_id"])
+        self.assertEqual(record["headers"]["x-r3dm-signature"], expected)
+        self.assertEqual(record["headers"]["idempotency-key"], record["body"]["event"]["event_id"])
         self.assertNotIn("private_brief", record["raw"].decode())
 
     @patch.dict(os.environ, {"MULTIFUNCION_BRIDGE_ENABLED": "1"})
@@ -82,8 +82,8 @@ class LocalIntegrationTests(unittest.TestCase):
         self.assertTrue(result["accepted"])
         record = self.http.records[0]
         self.assertEqual(record["path"], "/api/pulpos/jobs")
-        self.assertEqual(record["headers"]["X-Pulpo-Token"], "t" * 40)
-        self.assertEqual(record["headers"]["Idempotency-Key"], "handoff-123456")
+        self.assertEqual(record["headers"]["x-pulpo-token"], "t" * 40)
+        self.assertEqual(record["headers"]["idempotency-key"], "handoff-123456")
         self.assertEqual(record["body"]["pulpo"], "BETA")
 
 if __name__ == "__main__":

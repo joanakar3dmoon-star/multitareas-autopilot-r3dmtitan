@@ -15,7 +15,6 @@ class CerebroBridge:
                  events_path: str | None = None, health_path: str | None = None):
         self.base_url = (base_url if base_url is not None else os.getenv("CEREBRO_BASE_URL", "")).strip()
         self.secret = shared_secret if shared_secret is not None else os.getenv("CEREBRO_SHARED_SECRET", "")
-        # The event route must be explicitly supplied; no unverified endpoint is guessed.
         self.events_path = (events_path if events_path is not None else os.getenv("CEREBRO_EVENTS_PATH", "")).strip()
         self.health_path = (health_path if health_path is not None else os.getenv("CEREBRO_HEALTH_PATH", "/health")).strip()
         if self.base_url:
@@ -60,8 +59,10 @@ class CerebroBridge:
             "Idempotency-Key": str(event["event_id"]),
         }
         try:
-            request_json(urljoin(self.base_url + "/", self.events_path.lstrip("/")),
-                         method="POST", payload=envelope, headers=headers, timeout=15)
+            ack = request_json(urljoin(self.base_url + "/", self.events_path.lstrip("/")),
+                               method="POST", payload=envelope, headers=headers, timeout=15)
+            if ack.get("accepted") is not True and ack.get("received") is not True:
+                return False, "receiver_acknowledgement_missing"
             return True, None
         except Exception as exc:
             return False, str(exc)[:500]

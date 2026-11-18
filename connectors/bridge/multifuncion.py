@@ -6,8 +6,10 @@ import re
 from urllib.parse import urljoin
 from connectors.bridge.transport import request_json, validate_base_url, validate_path
 
-SENSITIVE_KEYS = {"password", "secret", "api_key", "access_token", "refresh_token",
-                  "iban", "account_number", "card_number", "cvv", "email", "phone"}
+SENSITIVE_KEYS = {"password", "secret", "client_secret", "api_key", "access_token",
+                  "refresh_token", "token", "authorization", "cookie", "iban", "bic",
+                  "bank_account", "account_number", "card_number", "cvv", "email",
+                  "phone", "address", "tax_id", "national_id"}
 
 def _reject_sensitive(value, path="payload"):
     if isinstance(value, dict):
@@ -63,5 +65,8 @@ class MultifuncionBridge:
         headers = {"Content-Type": "application/json", "X-Pulpo-Token": self.token,
                    "Idempotency-Key": idempotency_key}
         body = {"pulpo": pulpo, "worker": worker, "payload": payload}
-        return request_json(urljoin(self.base_url + "/", self.jobs_path.lstrip("/")),
-                            method="POST", payload=body, headers=headers, timeout=15)
+        ack = request_json(urljoin(self.base_url + "/", self.jobs_path.lstrip("/")),
+                           method="POST", payload=body, headers=headers, timeout=15)
+        if ack.get("accepted") is not True or not isinstance(ack.get("job_id"), str):
+            raise RuntimeError("Multifunción did not acknowledge the job with a job_id")
+        return ack
