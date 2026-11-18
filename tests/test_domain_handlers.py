@@ -76,7 +76,7 @@ class DomainHandlerTests(unittest.TestCase):
 
     def test_gamma_validates_instrument_identity_without_claiming_verification(self):
         result = self.run_task("GAMMA", "research_analysis", "identify_exact_instrument",
-            {"asset_class": "listed_equities", "instrument_id": "ISIN123",
+            {"asset_class": "equity", "instrument_id": "ISIN123",
              "issuer": "Example SA", "market": "XETRA", "currency": "EUR"})
         self.assertEqual(result["state"], "HUMAN_REVIEW")
         self.assertFalse(result["outcome"]["result"]["identity_verified_with_primary_source"])
