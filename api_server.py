@@ -15,6 +15,7 @@ from core.app import build_runtime, build_planner
 from core.catalog import TaskCatalog
 from core.task_handlers import build_task_handlers
 from connectors.bridge.dispatcher import BridgeDispatcher
+from connectors.bridge.multifuncion import MultifuncionBridge
 
 MAX_BODY_BYTES = 32_000
 
@@ -31,7 +32,7 @@ def run_worker_loop(runtime, stop_event: threading.Event, interval_seconds: floa
 
 def build_server(host: str = "127.0.0.1", port: int = 8000,
                  database: str | None = None, api_token: str | None = None,
-                 planner=None) -> ThreadingHTTPServer:
+                 planner=None, multifuncion_bridge=None) -> ThreadingHTTPServer:
     token = api_token if api_token is not None else os.getenv("MULTITAREAS_API_TOKEN", "")
     if not isinstance(token, str) or len(token) < 32:
         raise RuntimeError("MULTITAREAS_API_TOKEN must be configured with at least 32 characters")
@@ -101,6 +102,14 @@ def build_server(host: str = "127.0.0.1", port: int = 8000,
                 return
             if not self._authorized():
                 return
+            if path == "/api/bridges/status":
+                cerebro = BridgeDispatcher(self.server.runtime.store).cerebro
+                multifuncion = self.server.multifuncion_bridge
+                self._send(HTTPStatus.OK, {
+                    "cerebro": {"configured": cerebro.configured},
+                    "multifuncion": {"configured": multifuncion.configured},
+                })
+                return
             if path == "/api/coverage":
                 catalog = self.server.catalog
                 counts = {}
@@ -154,6 +163,29 @@ def build_server(host: str = "127.0.0.1", port: int = 8000,
                 except sqlite3.IntegrityError:
                     self._send(HTTPStatus.CONFLICT, {"error": "task_id_conflict"})
                 return
+            if path == "/api/bridges/multifuncion/jobs":
+                pulpo, worker, payload = body.get("pulpo"), body.get("worker"), body.get("payload")
+                idempotency_key = self.headers.get("Idempotency-Key") or body.get("idempotency_key")
+                if (pulpo not in {"ALPHA", "BETA", "GAMMA"} or
+                        not isinstance(worker, str) or not isinstance(payload, dict) or
+                        not isinstance(idempotency_key, str)):
+                    self._send(HTTPStatus.BAD_REQUEST, {"error": "pulpo_worker_payload_and_idempotency_key_required"})
+                    return
+                if not self.server.multifuncion_bridge.configured:
+                    self._send(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "multifuncion_bridge_disabled"})
+                    return
+                try:
+                    acknowledgement = self.server.multifuncion_bridge.enqueue(
+                        pulpo, worker, payload, idempotency_key
+                    )
+                    self._send(HTTPStatus.ACCEPTED, acknowledgement)
+                except PermissionError:
+                    self._send(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "multifuncion_bridge_disabled"})
+                except ValueError as exc:
+                    self._send(HTTPStatus.BAD_REQUEST, {"error": str(exc)[:200]})
+                except RuntimeError:
+                    self._send(HTTPStatus.BAD_GATEWAY, {"error": "multifuncion_remote_rejected_or_unavailable"})
+                return
             if path == "/api/plans":
                 request_context = body.get("request_context")
                 allowed = body.get("allowed_pulpos")
@@ -176,5 +208,6 @@ def build_server(host: str = "127.0.0.1", port: int = 8000,
     server.planner = central_planner
     server.catalog = TaskCatalog()
     server.handlers = build_task_handlers()
+    server.multifuncion_bridge = multifuncion_bridge if multifuncion_bridge is not None else MultifuncionBridge()
     server.worker_thread = None
     return server
