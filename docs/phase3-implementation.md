@@ -1,27 +1,32 @@
-# Phase 3 — bots, persistence and connectors
+# Phase 3 — bots, persistencia y conectores
 
-## Bot families added
+## Bot families
 
-- ALPHA: validates intake, creates a task plan and performs basic artifact QA. It returns NEEDS_ADAPTER until an authorized execution/delivery adapter is configured.
-- BETA: ranks supplied opportunity candidates, qualifies leads only when contact permission is explicitly true, and reconciles expected versus received commission amounts using integer minor units. It does not scrape sites, send messages or place orders.
-- GAMMA: validates market-data structure, performs explicit exposure checks only when risk inputs are supplied, and prepares traditional-asset research. Missing risk inputs are reported as NOT_EVALUATED, not as a pass. Data freshness is not yet verified. Crypto is rejected and no investment order can be emitted.
+- ALPHA: valida intake, crea un plan de trabajo y realiza QA básico de artefactos. Devuelve NEEDS_ADAPTER hasta configurar un adaptador autorizado de ejecución/entrega.
+- BETA: clasifica oportunidades aportadas, cualifica leads solo con consentimiento explícito y concilia comisiones en unidades monetarias menores. No scrapea, no envía mensajes ni cursa pedidos.
+- GAMMA: valida la estructura de datos, evalúa exposición solo con entradas explícitas y prepara research de activos tradicionales. Si faltan entradas de riesgo, informa NOT_EVALUATED. No afirma frescura de mercado. Rechaza cripto y nunca emite órdenes.
 
-## Runtime wiring
+## Runtime
 
-core/worker_registry.py registers the three phase-three bot workers. core/app.py now uses this registry when building the persistent runtime. core/store.py provides the SQLite queue, idempotency, audit events, leases and recovery after an expired worker lease. core/scheduler.py starts only through the explicit run_worker.py entry point.
+core/worker_registry.py registra los tres workers; core/app.py lo utiliza al construir el runtime. core/store.py proporciona cola SQLite, idempotencia, auditoría, leases, recuperación y outbox local. core/scheduler.py arranca únicamente desde run_worker.py.
 
-## Connectors
+## Bridges
 
-- Ollama: opt-in local HTTP chat adapter, localhost-only, bounded timeout and response size.
-- Marketplaces: disabled adapter; requires provider-specific official API, account scopes, terms review, sandbox and attribution proof.
-- Payments: generic HMAC-SHA256 helper and idempotent inbound-receipt ledger. The ledger method accepts events that the caller has already verified; it does not verify provider signatures itself. This is not a Stripe/Bizum/SEPA integration. Each provider still needs its own signature canonicalization, replay protection, webhook endpoint, event mapping and reconciliation tests.
-- Banking: read-only banking connection and transaction reconciliation are not implemented.
-- Broker: no broker connection exists. GAMMA remains research-only.
+- Cerebro: los cambios de estado generan un evento mínimo en outbox dentro de la transacción local. El dispatcher firma con HMAC-SHA256 y requiere URL, ruta de eventos y secreto configurados. No se envían payloads de trabajo ni datos personales. El roundtrip remoto no está verificado.
+- Multifunción: cliente explícito para la API /api/pulpos/jobs de la PR #4 del repositorio superagente-autopilot-multifuncion. La PR objetivo está abierta y no prueba que exista un servicio desplegado. El cliente permanece desactivado por defecto y filtra campos sensibles. No hay reenvío automático.
 
-## Security boundary
+## External adapters
 
-No connector can initiate a transfer, payout, refund, subscription, purchase or broker order. Payment receipts remain PENDING_RECONCILIATION until a separate verified reconciliation process is implemented. Never put secrets, raw webhook bodies or unnecessary personal data in Git or ledger metadata.
+- Ollama: HTTP local limitado a localhost, con timeout y límite de respuesta.
+- Marketplaces: desactivados; requieren API oficial, scopes, términos y sandbox.
+- Pagos: HMAC genérico y ledger idempotente; no es una integración de Stripe/Bizum/SEPA. El método de ledger recibe eventos que el llamante ya verificó; no verifica por sí mismo firmas específicas ni concilia con el banco.
+- Banco: no implementado.
+- Broker: no implementado; GAMMA sigue en research-only.
 
-## Verification
+## Security
 
-Run python -m unittest discover -s tests -v. CI runs Python 3.11 compile and unit tests. External provider calls are deliberately excluded from unit tests; use provider sandbox accounts and signed test webhooks before any production activation.
+No existe capacidad para iniciar transferencias, payouts, reembolsos, compras, suscripciones ni órdenes de broker. Los recibos permanecen PENDING_RECONCILIATION. No guardar secretos, bodies completos de webhook ni datos personales innecesarios en Git o metadata.
+
+## Validation
+
+CI ejecuta compilación y tests unitarios con Python 3.11. Los tests no sustituyen el handshake remoto, el sandbox del proveedor, la conciliación real ni las pruebas de caída/recuperación del despliegue.

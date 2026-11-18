@@ -1,19 +1,33 @@
-# Mapa de integraciones a verificar en QUASAR
+# Mapa de integraciones y separación de proyectos
 
-Inventario inicial basado en el árbol de GitHub inspeccionado. La presencia de un archivo o workflow no demuestra que la integración esté autenticada, desplegada o autorizada para operar.
+La presencia de código o de una URL configurada no demuestra que una integración esté autenticada, desplegada, autorizada u operativa.
 
-| Área | Código/documentación existente | Reutilización prevista | Validación pendiente |
+| Sistema | Adaptador en Multitareas | Estado comprobado | Requisito pendiente |
 |---|---|---|---|
-| Dealwork | `colmena/cliente_dealwork.py`, `colmena/conectar_dealwork.py`, `scripts/dealwork_radar.py`, workflow Dealwork | ALPHA y BETA como adaptadores aislados | API vigente, OAuth/permisos, publicación, contrato, cobro y pruebas E2E |
-| Workers y Cerebro | `quasar/business_workers.py`, `quasar/intelligent_workers.py`, `quasar/bot_families.py`, `quasar/admin_brain.py` | Adaptadores de workers y memoria | contratos, límites, persistencia, compatibilidad y pruebas |
-| Marketplace | `quasar/marketplace_outbox.py`, documentos de clientes/marketplaces | BETA | plataformas exactas, APIs oficiales, reglas, atribución y liquidación |
-| Finanzas | `r3dm_finanzas/engine.py`, `r3dm_finanzas/worker_ai.py`, `quasar/payments.py`, `quasar/work_payments.py` | Ledger y conciliación | webhooks reales, titular fiscal, IVA/retenciones, reembolsos y conciliación |
-| Verticales y fábrica | `docs/catalogo_verticales_comerciales.json`, `docs/matriz_verticales_ejecutables.json`, `quasar/vertical_product_factory.py` | Catálogo versionado y validado | mapear cada vertical a workers realmente ejecutables |
-| Cerebro QUASAR | `quasar/site_pulpo_brain.py`, `quasar/admin_brain_cycle.py` | Integración por API/eventos, nunca acoplamiento directo | endpoint, autenticación, esquema, memoria y pruebas de contrato |
-| IA | variables de entorno en `.env.example` y módulos existentes | proveedor intercambiable | verificar API, coste, límites, privacidad, disponibilidad y licencia |
-| SEPA/banco | configuración y finanzas existentes | conciliación entrante y registro de liquidaciones | proveedor bancario/PSP, mandato, OAuth, scopes, webhook y cuenta titular |
-| Broker | no se ha verificado un adaptador de broker apto para GAMMA | interfaz futura | broker autorizado, instrumentos, sandbox, límites y autorización explícita |
+| Cerebro | Outbox SQLite + puente HMAC r3dm-cerebro-bridge-v1 | El evento se guarda localmente; el envío solo se intenta con endpoint, ruta y secreto explícitos | Endpoint receptor real, contrato confirmado, secreto de 32+ caracteres y handshake/roundtrip remoto |
+| Superagente Multifunción | Cliente explícito hacia /api/pulpos/jobs con X-Pulpo-Token | Cliente implementado y desactivado por defecto | PR #4 del Multifunción aún debe integrarse/desplegarse; URL y token de servicio; roundtrip de prueba |
+| QUASAR | Sin importación directa ni acceso a su base de datos | Repositorio independiente; reutilización prevista mediante APIs/adaptadores revisados | Definir catálogo/datos que se pueden compartir y validar su API de lectura |
+| Ollama | Conector HTTP local | Restringido a localhost, con límites de tamaño y timeout | Instalar modelo local y probar inferencia real en el entorno de ejecución |
+| Marketplace/afiliación | Adaptador desactivado | No hay cuentas ni proveedores conectados | API oficial, scopes, términos, sandbox, atribución y conciliación |
+| Pagos/PSP | Verificador HMAC genérico + ledger local idempotente | No es integración de Stripe/Bizum/SEPA; pagos quedan pendientes de conciliación | Implementación específica por proveedor, replay protection, endpoint firmado, conciliación PSP/banco |
+| Banco | No implementado | Sin conexión bancaria | OAuth read-only, scopes mínimos, consentimientos, matching y pruebas |
+| Broker | No implementado | GAMMA es RESEARCH_ONLY | No se habilitará ejecución automática; research tradicional únicamente |
 
-## Regla
+## Contratos de puente
 
-Antes de copiar o importar un módulo existente, revisar su código, pruebas, dependencias, estado de despliegue y permisos. Mantener los sistemas existentes intactos; integrar mediante adaptadores y contratos versionados.
+### Cerebro
+- Los cambios de estado de las tareas generan eventos mínimos en la outbox local.
+- No se exporta el payload de trabajo, emails, datos bancarios ni secretos.
+- El dispatcher firma el JSON con HMAC-SHA256 y envía X-R3DM-Signature, X-R3DM-Contract e Idempotency-Key.
+- El evento permanece pendiente si no hay configuración, falla el handshake o falla la entrega.
+- El endpoint de eventos debe configurarse explícitamente; no se inventa una ruta receptora.
+
+### Superagente Multifunción
+- El cliente está separado del puente de eventos a Cerebro: envía trabajos explícitos a la API /api/pulpos/jobs usando X-Pulpo-Token.
+- La ruta y autenticación se basan en el contrato de la rama/PR #4 de superagente-autopilot-multifuncion; esa PR no equivale a un servicio desplegado.
+- Se requiere MULTIFUNCION_BRIDGE_ENABLED=1, HTTPS, URL y token válidos. No hay reenvío automático de tareas.
+- Se rechazan campos sensibles como contraseñas, tokens, IBAN, tarjetas, emails y teléfonos. Enviar solo payload mínimo, autorizado y sin datos personales.
+
+## Regla de arquitectura
+
+Multitareas conserva su propio SQLite, workers, permisos, clientes, configuración y cobros. No se comparte una base de datos con QUASAR ni Multifunción. No se fusionan repositorios ni se modifican sus despliegues. Los puentes son asíncronos, explícitos, idempotentes y fail-closed.
