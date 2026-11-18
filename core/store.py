@@ -32,29 +32,17 @@ class TaskStore:
             db.execute("PRAGMA journal_mode = WAL")
             db.executescript("""
                 CREATE TABLE IF NOT EXISTS tasks (
-                    task_id TEXT PRIMARY KEY,
-                    idempotency_key TEXT UNIQUE,
-                    pulpo TEXT NOT NULL,
-                    vertical TEXT NOT NULL,
-                    payload TEXT NOT NULL,
-                    state TEXT NOT NULL,
-                    attempts INTEGER NOT NULL DEFAULT 0,
-                    max_attempts INTEGER NOT NULL DEFAULT 3,
-                    available_at TEXT NOT NULL,
-                    lease_until TEXT,
-                    result TEXT,
-                    last_error TEXT,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
+                    task_id TEXT PRIMARY KEY, idempotency_key TEXT UNIQUE,
+                    pulpo TEXT NOT NULL, vertical TEXT NOT NULL, payload TEXT NOT NULL,
+                    state TEXT NOT NULL, attempts INTEGER NOT NULL DEFAULT 0,
+                    max_attempts INTEGER NOT NULL DEFAULT 3, available_at TEXT NOT NULL,
+                    lease_until TEXT, result TEXT, last_error TEXT,
+                    created_at TEXT NOT NULL, updated_at TEXT NOT NULL
                 );
-                CREATE INDEX IF NOT EXISTS idx_tasks_ready
-                    ON tasks(state, available_at, created_at);
+                CREATE INDEX IF NOT EXISTS idx_tasks_ready ON tasks(state, available_at, created_at);
                 CREATE TABLE IF NOT EXISTS audit_events (
-                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    task_id TEXT,
-                    event_type TEXT NOT NULL,
-                    actor TEXT NOT NULL,
-                    details TEXT NOT NULL,
+                    event_id INTEGER PRIMARY KEY AUTOINCREMENT, task_id TEXT,
+                    event_type TEXT NOT NULL, actor TEXT NOT NULL, details TEXT NOT NULL,
                     created_at TEXT NOT NULL,
                     FOREIGN KEY(task_id) REFERENCES tasks(task_id)
                 );
@@ -68,13 +56,13 @@ class TaskStore:
                 max_attempts: int = 3) -> dict[str, Any]:
         if not isinstance(task_id, str) or not task_id.strip():
             raise ValueError("task_id is required")
-        if not isinstance(pulpo, str) or not isinstance(vertical, str) or not vertical.strip():
+        if not isinstance(pulpo, str) or not pulpo.strip() or not isinstance(vertical, str) or not vertical.strip():
             raise ValueError("pulpo and vertical are required")
         if not isinstance(payload, dict):
             raise ValueError("payload must be an object")
         now = utc_now()
-        if max_attempts < 1:
-            raise ValueError("max_attempts must be >= 1")
+        if not isinstance(max_attempts, int) or isinstance(max_attempts, bool) or max_attempts < 1:
+            raise ValueError("max_attempts must be an integer >= 1")
         encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True)
         with self._connect() as db:
             if idempotency_key:
@@ -94,8 +82,8 @@ class TaskStore:
                                    (task_id,)).fetchone())
 
     def claim(self, lease_seconds: int = 900) -> dict[str, Any] | None:
-        if not 30 <= lease_seconds <= 3600:
-            raise ValueError("lease_seconds must be between 30 and 3600")
+        if not isinstance(lease_seconds, int) or isinstance(lease_seconds, bool) or not 30 <= lease_seconds <= 3600:
+            raise ValueError("lease_seconds must be an integer between 30 and 3600")
         now_dt = datetime.now(timezone.utc)
         now = now_dt.isoformat()
         lease_until = (now_dt + timedelta(seconds=lease_seconds)).isoformat()
@@ -103,7 +91,7 @@ class TaskStore:
             db.execute("BEGIN IMMEDIATE")
             expired = db.execute("""
                 SELECT task_id,attempts,max_attempts FROM tasks
-                WHERE state='RUNNING' AND lease_until IS NOT NULL AND lease_until <= ?
+                WHERE state='RUNNING' AND (lease_until IS NULL OR lease_until <= ?)
             """, (now,)).fetchall()
             for row in expired:
                 state = "RETRY" if row["attempts"] < row["max_attempts"] else "FAILED"
@@ -135,8 +123,8 @@ class TaskStore:
             return claimed
 
     def renew_lease(self, task_id: str, lease_seconds: int = 900) -> bool:
-        if not 30 <= lease_seconds <= 3600:
-            raise ValueError("lease_seconds must be between 30 and 3600")
+        if not isinstance(lease_seconds, int) or isinstance(lease_seconds, bool) or not 30 <= lease_seconds <= 3600:
+            raise ValueError("lease_seconds must be an integer between 30 and 3600")
         now_dt = datetime.now(timezone.utc)
         with self._connect() as db:
             changed = db.execute("""
