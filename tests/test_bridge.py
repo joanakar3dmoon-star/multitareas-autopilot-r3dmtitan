@@ -1,11 +1,9 @@
 import hashlib
 import hmac
-import json
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-
 from core.store import TaskStore
 from connectors.bridge.cerebro import CerebroBridge
 from connectors.bridge.dispatcher import BridgeDispatcher
@@ -45,21 +43,20 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(headers["X-R3DM-Signature"][:7], "sha256=")
 
     def test_multifunction_bridge_is_disabled_by_default(self):
-        bridge = MultifuncionBridge(base_url="https://multi.example",
-                                    api_token="t" * 40, enabled=False)
+        bridge = MultifuncionBridge(base_url="https://multi.example", api_token="t" * 40)
         self.assertFalse(bridge.configured)
         with self.assertRaises(PermissionError):
             bridge.enqueue("ALPHA", "alpha.intake", {}, "request-123456")
 
+    @patch.dict("os.environ", {"MULTIFUNCION_BRIDGE_ENABLED": "1"})
     def test_multifunction_bridge_rejects_sensitive_payload(self):
-        bridge = MultifuncionBridge(base_url="https://multi.example",
-                                    api_token="t" * 40, enabled=True)
+        bridge = MultifuncionBridge(base_url="https://multi.example", api_token="t" * 40)
         with self.assertRaises(ValueError):
             bridge.enqueue("BETA", "beta.lead", {"email": "person@example.com"}, "request-123456")
 
+    @patch.dict("os.environ", {"MULTIFUNCION_BRIDGE_ENABLED": "1"})
     def test_multifunction_bridge_posts_explicit_job(self):
-        bridge = MultifuncionBridge(base_url="https://multi.example",
-                                    api_token="t" * 40, enabled=True)
+        bridge = MultifuncionBridge(base_url="https://multi.example", api_token="t" * 40)
         with patch("connectors.bridge.multifuncion.request_json",
                    return_value={"accepted": True, "job_id": "remote-1"}) as mocked:
             result = bridge.enqueue("ALPHA", "alpha.intake",
@@ -69,7 +66,7 @@ class BridgeTests(unittest.TestCase):
 
     def test_task_finish_adds_minimal_event_to_local_outbox(self):
         self.store.enqueue("t1", "ALPHA", "websites", {"brief": "not sent"})
-        claimed = self.store.claim()
+        self.store.claim()
         self.store.finish("t1", {"state": "NEEDS_ADAPTER"}, "NEEDS_ADAPTER")
         pending = self.store.pending_bridge_events("cerebro")
         self.assertEqual(len(pending), 1)

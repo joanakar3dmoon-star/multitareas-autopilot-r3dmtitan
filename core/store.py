@@ -197,6 +197,25 @@ class TaskStore:
                  "vertical": row["vertical"], "state": state})
             return state
 
+    def get(self, task_id: str) -> dict[str, Any] | None:
+        with self._connect() as db:
+            row = db.execute("SELECT * FROM tasks WHERE task_id=?", (task_id,)).fetchone()
+            if not row:
+                return None
+            item = dict(row)
+            item["payload"] = json.loads(item["payload"])
+            item["result"] = json.loads(item["result"]) if item["result"] else None
+            return item
+
+    def audit(self, task_id: str | None = None) -> list[dict[str, Any]]:
+        with self._connect() as db:
+            if task_id:
+                rows = db.execute("SELECT * FROM audit_events WHERE task_id=? ORDER BY event_id",
+                                  (task_id,)).fetchall()
+            else:
+                rows = db.execute("SELECT * FROM audit_events ORDER BY event_id").fetchall()
+            return [dict(row) for row in rows]
+
     def pending_bridge_events(self, destination: str = "cerebro", limit: int = 20) -> list[dict[str, Any]]:
         if destination != "cerebro":
             raise ValueError("unsupported bridge destination")

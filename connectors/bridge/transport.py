@@ -19,8 +19,10 @@ def validate_base_url(value: str) -> str:
     return value.rstrip("/")
 
 def validate_path(path: str) -> str:
-    if not isinstance(path, str) or not path.startswith("/") or ".." in path.split("/"):
-        raise ValueError("bridge path must be an absolute safe path")
+    parsed = urlparse(path)
+    if (not isinstance(path, str) or not path.startswith("/") or ".." in path.split("/")
+            or parsed.scheme or parsed.netloc or parsed.query or parsed.fragment):
+        raise ValueError("bridge path must be an absolute safe path without query or fragment")
     return path
 
 def request_json(url: str, method: str = "GET", payload: dict | None = None,

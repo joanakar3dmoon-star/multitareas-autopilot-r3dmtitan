@@ -22,13 +22,12 @@ def _reject_sensitive(value, path="payload"):
 class MultifuncionBridge:
     """Targets the /api/pulpos/jobs contract in Multifunción PR #4; not assumed deployed."""
     def __init__(self, base_url: str | None = None, api_token: str | None = None,
-                 jobs_path: str | None = None, health_path: str | None = None,
-                 enabled: bool | None = None):
+                 jobs_path: str | None = None, health_path: str | None = None):
         self.base_url = (base_url if base_url is not None else os.getenv("MULTIFUNCION_BASE_URL", "")).strip()
         self.token = api_token if api_token is not None else os.getenv("MULTIFUNCION_API_TOKEN", "")
         self.jobs_path = (jobs_path if jobs_path is not None else os.getenv("MULTIFUNCION_JOBS_PATH", "/api/pulpos/jobs")).strip()
         self.health_path = (health_path if health_path is not None else os.getenv("MULTIFUNCION_HEALTH_PATH", "/api/pulpos/health")).strip()
-        self.enabled = (os.getenv("MULTIFUNCION_BRIDGE_ENABLED", "0") == "1") if enabled is None else enabled
+        self.enabled = os.getenv("MULTIFUNCION_BRIDGE_ENABLED", "0") == "1"
         if self.base_url:
             self.base_url = validate_base_url(self.base_url)
         validate_path(self.jobs_path)
