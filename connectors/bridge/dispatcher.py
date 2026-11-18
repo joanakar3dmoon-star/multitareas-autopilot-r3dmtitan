@@ -1,4 +1,4 @@
-"""Drain the durable Cerebro event outbox without blocking local task completion."""
+"""Drain the durable Cerebro event outbox with bounded retry backoff."""
 from __future__ import annotations
 from core.store import TaskStore
 from connectors.bridge.cerebro import CerebroBridge
@@ -14,12 +14,20 @@ class BridgeDispatcher:
         if not self.cerebro.configured:
             return {"configured": False, "sent": 0, "pending": None,
                     "reason": "Cerebro bridge not configured; events remain in local outbox"}
+        events = self.store.pending_bridge_events("cerebro", limit)
+        pending_count = self.store.count_pending_bridge_events("cerebro")
+        if not events:
+            return {"configured": True, "connected": None, "sent": 0,
+                    "pending": pending_count, "reason": "no_due_events"}
         health = self.cerebro.handshake()
         if not health.get("connected"):
+            reason = health.get("reason", "handshake_failed")
+            for row in events:
+                self.store.mark_bridge_failed(row["event_id"], "cerebro", reason)
             return {"configured": True, "connected": False, "sent": 0,
-                    "pending": None, "reason": health.get("reason", "handshake_failed")}
+                    "pending": pending_count, "reason": reason}
         sent = 0
-        for row in self.store.pending_bridge_events("cerebro", limit):
+        for row in events:
             event = {"event_id": row["event_id"], "event_type": row["event_type"],
                      "payload": row["payload"], "occurred_at": row["created_at"]}
             ok, error = self.cerebro.deliver(event)

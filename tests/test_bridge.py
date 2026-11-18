@@ -84,6 +84,26 @@ class BridgeTests(unittest.TestCase):
         self.assertFalse(result["configured"])
         self.assertEqual(self.store.count_pending_bridge_events(), 1)
 
+    def test_dispatcher_does_not_handshake_when_queue_empty(self):
+        bridge = CerebroBridge(base_url="https://cerebro.example",
+                               shared_secret="s" * 40, events_path="/events")
+        with patch.object(bridge, "handshake") as handshake:
+            result = BridgeDispatcher(self.store, bridge).dispatch_pending()
+        handshake.assert_not_called()
+        self.assertEqual(result["reason"], "no_due_events")
+
+    def test_dispatcher_backs_off_after_handshake_failure(self):
+        self.store.enqueue("t4", "ALPHA", "websites", {})
+        self.store.claim()
+        self.store.finish("t4", {"state": "NEEDS_ADAPTER"}, "NEEDS_ADAPTER")
+        bridge = CerebroBridge(base_url="https://cerebro.example",
+                               shared_secret="s" * 40, events_path="/events")
+        with patch.object(bridge, "handshake", return_value={"connected": False, "reason": "offline"}):
+            result = BridgeDispatcher(self.store, bridge).dispatch_pending()
+        self.assertFalse(result["connected"])
+        self.assertEqual(self.store.pending_bridge_events("cerebro"), [])
+        self.assertEqual(self.store.count_pending_bridge_events(), 1)
+
     def test_dispatcher_marks_successful_delivery(self):
         self.store.enqueue("t3", "ALPHA", "websites", {})
         self.store.claim()
