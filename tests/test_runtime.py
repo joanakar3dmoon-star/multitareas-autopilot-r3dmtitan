@@ -42,5 +42,19 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(result["state"], "BLOCKED")
         self.assertEqual(self.store.get("t2")["state"], "BLOCKED")
 
+    def test_agent_cannot_spend_or_transfer(self):
+        for task_id, payload in (("t3", {"spend": True}), ("t4", {"transfer_out": True})):
+            self.runtime.enqueue(task_id, "ALPHA", "websites", payload)
+            result = self.runtime.run_once()
+            self.assertEqual(result["state"], "BLOCKED")
+            self.assertEqual(result["outcome"]["reason"], "financial_action_denied")
+
+    def test_agent_cannot_place_investment_order(self):
+        self.runtime.enqueue("t5", "GAMMA", "equities",
+                             {"requested_action": "investment_order"})
+        result = self.runtime.run_once()
+        self.assertEqual(result["state"], "BLOCKED")
+        self.assertEqual(result["outcome"]["reason"], "permission_denied")
+
 if __name__ == "__main__":
     unittest.main()
