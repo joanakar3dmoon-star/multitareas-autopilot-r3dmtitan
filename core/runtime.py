@@ -19,7 +19,9 @@ class WorkerRuntime:
         record = self.store.claim()
         if record is None:
             return None
-        task = Task(record["task_id"], record["pulpo"], record["vertical"], record["payload"], "RUNNING")
+        payload = record["payload"]
+        task = Task(record["task_id"], record["pulpo"], record["vertical"], payload,
+                    "RUNNING", payload.get("block"), payload.get("task_key"))
         try:
             outcome = self.orchestrator.dispatch(task)
             if not isinstance(outcome, dict):

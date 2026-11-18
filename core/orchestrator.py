@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 from typing import Any
 from core.permissions import AgentPermissions
+from core.catalog import TaskCatalog
 
 PULPOS = ("ALPHA", "BETA", "GAMMA")
 FORBIDDEN_FLAGS = (
@@ -17,12 +18,18 @@ class Task:
     vertical: str
     payload: dict[str, Any]
     state: str = "DISCOVERED"
+    block: str | None = None
+    task_key: str | None = None
 
 class Orchestrator:
     def __init__(self, workers: dict[str, Any] | None = None,
-                 permissions: AgentPermissions | None = None):
+                 permissions: AgentPermissions | None = None,
+                 catalog: TaskCatalog | None = None,
+                 task_handlers: dict[tuple[str, str, str], Any] | None = None):
         self.workers = workers or {}
         self.permissions = permissions or AgentPermissions()
+        self.catalog = catalog or TaskCatalog()
+        self.task_handlers = task_handlers or {}
 
     def dispatch(self, task: Task) -> Any:
         if task.pulpo not in PULPOS:
@@ -41,6 +48,29 @@ class Orchestrator:
             except PermissionError:
                 return {"task_id": task.task_id, "state": "BLOCKED",
                         "reason": "permission_denied", "action": str(requested_action)}
+
+        block = task.block or task.payload.get("block")
+        task_key = task.task_key or task.payload.get("task_key")
+        if block is not None or task_key is not None:
+            if not isinstance(block, str) or not isinstance(task_key, str):
+                return {"task_id": task.task_id, "state": "BLOCKED",
+                        "reason": "block_and_task_key_required"}
+            spec = self.catalog.get_task(task.pulpo, block, task_key)
+            if spec is None:
+                return {"task_id": task.task_id, "state": "BLOCKED",
+                        "reason": "task_not_in_catalog", "block": block, "task_key": task_key}
+            handler = self.task_handlers.get((task.pulpo, block, task_key))
+            if handler is None:
+                required = spec.get("required_inputs", [])
+                missing = [field for field in required
+                           if field not in {"job_id"} and not task.payload.get(field)]
+                return {"task_id": task.task_id, "state": "NEEDS_ADAPTER",
+                        "reason": "task_handler_not_registered", "catalog_version": self.catalog.version,
+                        "block": block, "task_key": task_key, "required_inputs": required,
+                        "missing_required_inputs": missing,
+                        "execution_mode": spec.get("execution_mode", "connector_required_or_awaiting_connector")}
+            return handler.run(task, spec)
+
         worker = self.workers.get(task.pulpo)
         if worker is None:
             task.state = "BLOCKED"
