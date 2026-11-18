@@ -81,6 +81,12 @@ class ApiServerTests(unittest.TestCase):
         self.assertEqual(body["state"], "HUMAN_REVIEW")
         self.assertFalse(body["external_actions_executed"])
 
+    def test_api_rejects_non_string_pulpo_without_server_error(self):
+        with self.assertRaises(HTTPError) as error:
+            self.request("/api/tasks", "POST",
+                         {"pulpo": ["ALPHA"], "vertical": "x", "payload": {}})
+        self.assertEqual(error.exception.code, 400)
+
     def test_api_server_refuses_missing_token(self):
         with self.assertRaises(RuntimeError):
             build_server("127.0.0.1", 0, database=":memory:", api_token="")

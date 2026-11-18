@@ -132,7 +132,7 @@ def build_server(host: str = "127.0.0.1", port: int = 8000,
                 return
             if path == "/api/tasks":
                 pulpo, vertical, payload = body.get("pulpo"), body.get("vertical"), body.get("payload")
-                if pulpo not in {"ALPHA", "BETA", "GAMMA"} or not isinstance(vertical, str) or not vertical.strip() or not isinstance(payload, dict):
+                if not isinstance(pulpo, str) or pulpo not in {"ALPHA", "BETA", "GAMMA"} or not isinstance(vertical, str) or not vertical.strip() or not isinstance(payload, dict):
                     self._send(HTTPStatus.BAD_REQUEST, {"error": "pulpo_vertical_and_payload_required"})
                     return
                 task_id = body.get("task_id") or str(uuid.uuid4())
