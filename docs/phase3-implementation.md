@@ -1,14 +1,19 @@
 # Phase 3 — bots, persistencia y conectores
 
-## Bot families
+## Bot families and catalog handlers
 
-- ALPHA: valida intake, crea un plan de trabajo y realiza QA básico de artefactos. Devuelve NEEDS_ADAPTER hasta configurar un adaptador autorizado de ejecución/entrega.
-- BETA: clasifica oportunidades aportadas, cualifica leads solo con consentimiento explícito y concilia comisiones en unidades monetarias menores. No scrapea, no envía mensajes ni cursa pedidos.
-- GAMMA: valida la estructura de datos, evalúa exposición solo con entradas explícitas y prepara research de activos tradicionales. Si faltan entradas de riesgo, informa NOT_EVALUATED. No afirma frescura de mercado. Rechaza cripto y nunca emite órdenes.
+El catálogo versionado contiene 81 tareas (ALPHA 37, BETA 29, GAMMA 15). El runtime valida la combinación pulpo/bloque/tarea. Las tareas sin handler se detienen en NEEDS_ADAPTER; las tareas desconocidas quedan BLOCKED.
+
+Handlers locales registrados:
+- ALPHA: record_sources valida estructura HTTPS/proveedor/timestamp sin hacer fetch; score_opportunity calcula una puntuación versionada a partir de componentes aportados y requiere revisión humana.
+- BETA: calculate_total_price suma unidades monetarias menores aportadas; calculate_net_after_reserves separa IVA, impuestos, fees, devoluciones, costes y reservas, excluyendo cobros pendientes.
+- GAMMA: separate_confirmed_and_pending_cash no mezcla efectivo pendiente; calculate_potential_available_capital descuenta reservas y termina en HUMAN_REVIEW.
+
+Los workers generales también cubren intake/plan/QA básico en ALPHA, oportunidad/consentimiento/comisiones en BETA y research/data-quality/risk-gate en GAMMA. No equivalen a conectores de mercado ni a ejecución comercial externa.
 
 ## Runtime
 
-core/worker_registry.py registra los tres workers; core/app.py lo utiliza al construir el runtime. core/store.py proporciona cola SQLite, idempotencia, auditoría, leases, recuperación y outbox local. core/scheduler.py arranca únicamente desde run_worker.py.
+core/worker_registry.py registra workers y handlers; core/app.py construye el runtime. core/store.py proporciona cola SQLite, idempotencia, auditoría, leases, recuperación y outbox local. core/scheduler.py arranca únicamente desde run_worker.py.
 
 ## Bridges
 
