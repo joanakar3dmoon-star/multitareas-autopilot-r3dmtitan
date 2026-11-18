@@ -27,6 +27,7 @@ class RuntimeTests(unittest.TestCase):
         result = self.runtime.run_once()
         self.assertEqual(result["state"], "SUCCEEDED")
         self.assertEqual(self.store.get("t1")["state"], "SUCCEEDED")
+        self.assertIsNone(self.store.get("t1")["lease_until"])
         self.assertEqual([e["event_type"] for e in self.store.audit("t1")],
                          ["TASK_QUEUED", "TASK_CLAIMED", "TASK_SUCCEEDED"])
 
@@ -66,6 +67,23 @@ class RuntimeTests(unittest.TestCase):
         result = runtime.run_once()
         self.assertEqual(result["state"], "HUMAN_REVIEW")
         self.assertEqual(self.store.get("t6")["state"], "HUMAN_REVIEW")
+
+    def test_expired_worker_lease_is_retried(self):
+        self.runtime.enqueue("t7", "ALPHA", "websites", {})
+        self.store.claim()
+        with self.store._connect() as db:
+            db.execute("UPDATE tasks SET lease_until='2000-01-01T00:00:00+00:00' WHERE task_id='t7'")
+        claimed = self.store.claim()
+        self.assertEqual(claimed["task_id"], "t7")
+        self.assertEqual(claimed["attempts"], 2)
+        self.assertIn("TASK_LEASE_EXPIRED",
+                      [event["event_type"] for event in self.store.audit("t7")])
+
+    def test_lease_renewal_requires_running_task(self):
+        self.runtime.enqueue("t8", "ALPHA", "websites", {})
+        self.store.claim()
+        self.assertTrue(self.store.renew_lease("t8", 120))
+        self.assertFalse(self.store.renew_lease("missing", 120))
 
 if __name__ == "__main__":
     unittest.main()

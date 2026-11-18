@@ -2,7 +2,7 @@
 from __future__ import annotations
 import json
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -12,7 +12,7 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 class TaskStore:
-    """Durable SQLite queue with atomic claims and an append-only audit trail."""
+    """Durable SQLite queue with atomic claims, leases and append-only audit."""
     def __init__(self, database: str = "data/multitareas.db") -> None:
         if database == ":memory:":
             raise ValueError("TaskStore requires a file-backed database for durable queue semantics")
@@ -41,6 +41,7 @@ class TaskStore:
                     attempts INTEGER NOT NULL DEFAULT 0,
                     max_attempts INTEGER NOT NULL DEFAULT 3,
                     available_at TEXT NOT NULL,
+                    lease_until TEXT,
                     result TEXT,
                     last_error TEXT,
                     created_at TEXT NOT NULL,
@@ -58,6 +59,9 @@ class TaskStore:
                     FOREIGN KEY(task_id) REFERENCES tasks(task_id)
                 );
             """)
+            columns = {row["name"] for row in db.execute("PRAGMA table_info(tasks)")}
+            if "lease_until" not in columns:
+                db.execute("ALTER TABLE tasks ADD COLUMN lease_until TEXT")
 
     def enqueue(self, task_id: str, pulpo: str, vertical: str,
                 payload: dict[str, Any], idempotency_key: str | None = None,
@@ -89,10 +93,26 @@ class TaskStore:
             return dict(db.execute("SELECT * FROM tasks WHERE task_id = ?",
                                    (task_id,)).fetchone())
 
-    def claim(self) -> dict[str, Any] | None:
-        now = utc_now()
+    def claim(self, lease_seconds: int = 900) -> dict[str, Any] | None:
+        if not 30 <= lease_seconds <= 3600:
+            raise ValueError("lease_seconds must be between 30 and 3600")
+        now_dt = datetime.now(timezone.utc)
+        now = now_dt.isoformat()
+        lease_until = (now_dt + timedelta(seconds=lease_seconds)).isoformat()
         with self._connect() as db:
             db.execute("BEGIN IMMEDIATE")
+            expired = db.execute("""
+                SELECT task_id,attempts,max_attempts FROM tasks
+                WHERE state='RUNNING' AND lease_until IS NOT NULL AND lease_until <= ?
+            """, (now,)).fetchall()
+            for row in expired:
+                state = "RETRY" if row["attempts"] < row["max_attempts"] else "FAILED"
+                db.execute("""
+                    UPDATE tasks SET state=?,lease_until=NULL,available_at=?,last_error=?,
+                                     updated_at=? WHERE task_id=? AND state='RUNNING'
+                """, (state, now, "worker_lease_expired", now, row["task_id"]))
+                self._audit(db, row["task_id"], "TASK_LEASE_EXPIRED", "runtime",
+                            {"attempt": row["attempts"], "resulting_state": state})
             row = db.execute("""
                 SELECT * FROM tasks
                 WHERE state IN ('QUEUED','RETRY') AND available_at <= ?
@@ -101,17 +121,33 @@ class TaskStore:
             if row is None:
                 return None
             changed = db.execute("""
-                UPDATE tasks SET state='RUNNING', attempts=attempts+1, updated_at=?
+                UPDATE tasks SET state='RUNNING', attempts=attempts+1,
+                                 lease_until=?, updated_at=?
                 WHERE task_id=? AND state IN ('QUEUED','RETRY')
-            """, (now, row["task_id"])).rowcount
+            """, (lease_until, now, row["task_id"])).rowcount
             if changed != 1:
                 return None
             self._audit(db, row["task_id"], "TASK_CLAIMED", "worker",
-                        {"attempt": row["attempts"] + 1})
+                        {"attempt": row["attempts"] + 1, "lease_until": lease_until})
             claimed = dict(db.execute("SELECT * FROM tasks WHERE task_id=?",
                                       (row["task_id"],)).fetchone())
             claimed["payload"] = json.loads(claimed["payload"])
             return claimed
+
+    def renew_lease(self, task_id: str, lease_seconds: int = 900) -> bool:
+        if not 30 <= lease_seconds <= 3600:
+            raise ValueError("lease_seconds must be between 30 and 3600")
+        now_dt = datetime.now(timezone.utc)
+        with self._connect() as db:
+            changed = db.execute("""
+                UPDATE tasks SET lease_until=?,updated_at=?
+                WHERE task_id=? AND state='RUNNING'
+            """, ((now_dt + timedelta(seconds=lease_seconds)).isoformat(),
+                  now_dt.isoformat(), task_id)).rowcount
+            if changed:
+                self._audit(db, task_id, "TASK_LEASE_RENEWED", "worker",
+                            {"lease_seconds": lease_seconds})
+            return changed == 1
 
     def finish(self, task_id: str, result: dict[str, Any], state: str = "SUCCEEDED") -> None:
         if state not in TERMINAL_STATES:
@@ -119,7 +155,7 @@ class TaskStore:
         now = utc_now()
         with self._connect() as db:
             changed = db.execute("""
-                UPDATE tasks SET state=?, result=?, last_error=NULL, updated_at=?
+                UPDATE tasks SET state=?, result=?, last_error=NULL, lease_until=NULL, updated_at=?
                 WHERE task_id=? AND state='RUNNING'
             """, (state, json.dumps(result, ensure_ascii=False, sort_keys=True), now, task_id)).rowcount
             if changed != 1:
@@ -140,7 +176,7 @@ class TaskStore:
             state = "RETRY" if row["attempts"] < row["max_attempts"] else "FAILED"
             available = datetime.now(timezone.utc).timestamp() + max(0, retry_delay_seconds)
             retry_at = datetime.fromtimestamp(available, timezone.utc).isoformat()
-            db.execute("UPDATE tasks SET state=?,last_error=?,available_at=?,updated_at=? WHERE task_id=?",
+            db.execute("UPDATE tasks SET state=?,last_error=?,lease_until=NULL,available_at=?,updated_at=? WHERE task_id=?",
                        (state, error[:2000], retry_at, now, task_id))
             self._audit(db, task_id, "TASK_" + state, "worker",
                         {"error": error[:500], "attempt": row["attempts"]})
