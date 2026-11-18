@@ -34,4 +34,4 @@ No existe capacidad para iniciar transferencias, payouts, reembolsos, compras, s
 
 ## Validation
 
-CI ejecuta compileall y 83 pruebas unitarias/integración local con Python 3.11. Los tests loopback no sustituyen el handshake remoto, el sandbox del proveedor, la conciliación real ni las pruebas de caída/recuperación del despliegue.
+CI ejecuta compileall y 84 pruebas unitarias/integración local con Python 3.11. Los tests loopback no sustituyen el handshake remoto, el sandbox del proveedor, la conciliación real ni las pruebas de caída/recuperación del despliegue.

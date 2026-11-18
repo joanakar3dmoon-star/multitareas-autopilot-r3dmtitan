@@ -21,7 +21,7 @@ Este repositorio es el negocio independiente **Multitareas Autopilot** dentro de
 - Marketplace desactivado por defecto.
 - Helper HMAC genérico y ledger idempotente de cobros entrantes en estado PENDING_RECONCILIATION.
 - Puente HMAC preparado hacia Cerebro y cliente explícito de trabajos hacia Multifunción, ambos pendientes de conexión remota.
-- Dockerfile y CI con compileall, 83 pruebas unitarias/integración local y construcción de imagen sin publicar.
+- Dockerfile y CI con compileall, 84 pruebas unitarias/integración local y construcción de imagen sin publicar.
 
 ## Límites financieros
 
