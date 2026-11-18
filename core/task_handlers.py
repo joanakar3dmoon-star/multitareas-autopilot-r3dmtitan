@@ -179,6 +179,162 @@ def _record_price_context(t,s):
     mid=(bid+ask)/2; spread=round((ask-bid)/mid*10000,2) if mid else 0
     return {"task_id":t.task_id,"state":"HUMAN_REVIEW","result":{"price_minor":price,"bid_minor":bid,"ask_minor":ask,"spread_bps":spread,"volume":volume,"fee_bps":fees,"currency":_currency(p),"freshness_verified":False,"source_verified":False}}
 
+
+def _collect_authorized_quotes(t,s):
+    refs=_record_sources(t,s)
+    if refs.get("state")!="SUCCEEDED": return refs
+    quotes=t.payload.get("quotes")
+    if not isinstance(quotes,list) or not quotes: return {"task_id":t.task_id,"state":"NEEDS_ADAPTER","reason":"quote_records_required"}
+    clean=[]
+    for q in quotes:
+        if not isinstance(q,dict): return {"task_id":t.task_id,"state":"BLOCKED","reason":"quote_must_be_object"}
+        bid=_minor(q,"bid_minor"); ask=_minor(q,"ask_minor")
+        if bid>ask: return {"task_id":t.task_id,"state":"BLOCKED","reason":"bid_above_ask"}
+        clean.append({"provider_id":str(q.get("provider_id",""))[:120],"bid_minor":bid,"ask_minor":ask,"currency":_currency(q),"unit":str(q.get("unit",""))[:30],"observed_at":q.get("observed_at")})
+    return {"task_id":t.task_id,"state":"HUMAN_REVIEW","result":{"quotes":clean,"source_refs":refs["result"]["sources"],"remote_fetch_performed":False,"provider_authorization_verified":False}}
+
+def _normalize_currency_unit(t,s):
+    rows=t.payload.get("validated_records")
+    if not isinstance(rows,list) or not rows: return {"task_id":t.task_id,"state":"NEEDS_ADAPTER","reason":"validated_records_required"}
+    grams={"g":1.0,"gram":1.0,"kg":1000.0,"troy_oz":31.1034768}
+    out=[]
+    for row in rows:
+        if not isinstance(row,dict): return {"task_id":t.task_id,"state":"BLOCKED","reason":"quote_record_invalid"}
+        unit=str(row.get("unit","")).lower()
+        if unit not in grams: return {"task_id":t.task_id,"state":"NEEDS_ADAPTER","reason":"unsupported_weight_unit"}
+        price=_minor(row,"price_minor"); purity=_num(row.get("purity_bps"),"purity_bps",1,10000)
+        currency=_currency(row); base=str(row.get("base_currency",currency)).upper()
+        if not re.fullmatch(r"[A-Z]{3}",base): return {"task_id":t.task_id,"state":"BLOCKED","reason":"base_currency_invalid"}
+        fx=row.get("fx_rate_to_base",1 if currency==base else None)
+        if fx is None: return {"task_id":t.task_id,"state":"NEEDS_ADAPTER","reason":"fx_rate_required"}
+        fx=_num(fx,"fx_rate_to_base",0.000001)
+        pure_grams=grams[unit]*purity/10000
+        out.append({"record_id":str(row.get("record_id",""))[:100],"base_currency":base,"gross_weight_grams":grams[unit],"purity_bps":purity,"pure_weight_grams":round(pure_grams,8),"price_per_pure_gram_minor":round(price*fx/pure_grams,4),"fx_rate_supplied":currency!=base})
+    return {"task_id":t.task_id,"state":"HUMAN_REVIEW","result":{"normalized_quotes":out,"external_fx_verified":False}}
+
+def _calculate_spread_costs(t,s):
+    rows=t.payload.get("validated_records")
+    if not isinstance(rows,list) or not rows: return {"task_id":t.task_id,"state":"NEEDS_ADAPTER","reason":"validated_records_required"}
+    out=[]
+    for row in rows:
+        if not isinstance(row,dict): return {"task_id":t.task_id,"state":"BLOCKED","reason":"spread_record_invalid"}
+        bid=_minor(row,"bid_minor"); ask=_minor(row,"ask_minor")
+        if bid>ask: return {"task_id":t.task_id,"state":"BLOCKED","reason":"bid_above_ask"}
+        mid=(bid+ask)/2
+        premium=_minor(row,"premium_minor",0); fees=_minor(row,"fees_minor",0)
+        shipping=_minor(row,"shipping_minor",0); tax=_minor(row,"tax_minor",0)
+        out.append({"quote_id":str(row.get("quote_id",""))[:100],"currency":_currency(row),"spread_bps":round((ask-bid)/mid*10000,2) if mid else 0,"landed_buy_cost_minor":ask+premium+fees+shipping+tax,"cost_components_minor":{"ask":ask,"premium":premium,"fees":fees,"shipping":shipping,"tax":tax}})
+    return {"task_id":t.task_id,"state":"HUMAN_REVIEW","result":{"quotes":out,"costs_from_supplied_inputs":True}}
+
+def _record_availability(t,s):
+    rows=t.payload.get("validated_records")
+    if not isinstance(rows,list) or not rows: return {"task_id":t.task_id,"state":"NEEDS_ADAPTER","reason":"availability_records_required"}
+    out=[]
+    for row in rows:
+        if not isinstance(row,dict): return {"task_id":t.task_id,"state":"BLOCKED","reason":"availability_record_invalid"}
+        qty=row.get("available_quantity")
+        if not isinstance(qty,int) or isinstance(qty,bool) or qty<0 or not isinstance(row.get("provider_id"),str) or not row["provider_id"].strip() or not _ts(row.get("observed_at")):
+            return {"task_id":t.task_id,"state":"BLOCKED","reason":"availability_record_invalid"}
+        out.append({"provider_id":row["provider_id"][:120],"available_quantity":qty,"observed_at":row["observed_at"],"freshness_verified":False})
+    return {"task_id":t.task_id,"state":"SUCCEEDED","result":{"availability_records":out,"external_stock_checked":False}}
+
+def _identify_instrument_issuer(t,s):
+    p=t.payload; missing=[k for k in ("instrument_id","issuer","issuer_id","asset_class") if not p.get(k)]
+    if missing: return {"task_id":t.task_id,"state":"NEEDS_ADAPTER","reason":"instrument_issuer_fields_required","missing_required_inputs":missing}
+    if p["asset_class"] not in {"equity","etf","fund","bond","gold","commodity"}: return {"task_id":t.task_id,"state":"BLOCKED","reason":"asset_class_not_allowed"}
+    return {"task_id":t.task_id,"state":"HUMAN_REVIEW","result":{"instrument_id":str(p["instrument_id"])[:100],"issuer":str(p["issuer"])[:160],"issuer_id":str(p["issuer_id"])[:100],"asset_class":p["asset_class"],"primary_source_verified":False,"trade_allowed":False}}
+
+def _review_structure_fees_liquidity(t,s):
+    p=t.payload; fields=("annual_fee_bps","spread_bps","liquidity_days","max_annual_fee_bps","max_spread_bps","max_liquidity_days")
+    missing=[k for k in fields if k not in p]
+    if missing: return {"task_id":t.task_id,"state":"NEEDS_ADAPTER","reason":"structure_and_limits_required","missing_required_inputs":missing}
+    vals={k:_num(p[k],k,0) for k in fields}
+    flags=[]
+    if vals["annual_fee_bps"]>vals["max_annual_fee_bps"]: flags.append("annual_fee")
+    if vals["spread_bps"]>vals["max_spread_bps"]: flags.append("spread")
+    if vals["liquidity_days"]>vals["max_liquidity_days"]: flags.append("liquidity")
+    return {"task_id":t.task_id,"state":"HUMAN_REVIEW","result":{"risk_flags":flags,"within_supplied_limits":not flags,"fees_and_liquidity_source_verified":False}}
+
+def _record_risks(t,s):
+    risks=t.payload.get("risk_components"); limit=t.payload.get("max_risk_score")
+    if not isinstance(risks,dict) or not risks or limit is None: return {"task_id":t.task_id,"state":"NEEDS_ADAPTER","reason":"risk_components_and_limit_required"}
+    threshold=_num(limit,"max_risk_score",0,100); clean={}
+    for key,value in risks.items(): clean[str(key)[:80]]=_num(value,str(key),0,100)
+    flags=[key for key,value in clean.items() if value>threshold]
+    return {"task_id":t.task_id,"state":"HUMAN_REVIEW","result":{"risk_components":clean,"max_risk_score":threshold,"risk_flags":flags,"within_supplied_limit":not flags,"order_allowed":False}}
+
+def _research_suppliers(t,s):
+    suppliers=t.payload.get("suppliers")
+    if not isinstance(suppliers,list) or not suppliers: return {"task_id":t.task_id,"state":"NEEDS_ADAPTER","reason":"supplier_records_required"}
+    out=[]
+    for x in suppliers:
+        if not isinstance(x,dict) or not x.get("supplier_id") or not x.get("country"): return {"task_id":t.task_id,"state":"BLOCKED","reason":"supplier_identity_incomplete"}
+        out.append({"supplier_id":str(x["supplier_id"])[:100],"country":str(x["country"])[:80],"product_categories":x.get("product_categories",[]),"quoted_price_minor":_minor(x,"quoted_price_minor"),"currency":_currency(x),"supplier_verified":False})
+    return {"task_id":t.task_id,"state":"HUMAN_REVIEW","result":{"suppliers":out,"external_research_performed":False}}
+
+def _verify_certifications(t,s):
+    from datetime import date
+    certs=t.payload.get("certifications")
+    if not isinstance(certs,list) or not certs: return {"task_id":t.task_id,"state":"NEEDS_ADAPTER","reason":"certifications_required"}
+    out=[]
+    for x in certs:
+        if not isinstance(x,dict) or not x.get("certificate_id") or not x.get("issuer") or not x.get("valid_until"):
+            return {"task_id":t.task_id,"state":"BLOCKED","reason":"certificate_fields_invalid"}
+        try: expiry=date.fromisoformat(str(x["valid_until"])[:10])
+        except ValueError: return {"task_id":t.task_id,"state":"BLOCKED","reason":"certificate_date_invalid"}
+        out.append({"certificate_id":str(x["certificate_id"])[:100],"issuer":str(x["issuer"])[:120],"valid_until":expiry.isoformat(),"declared_scope":str(x.get("scope",""))[:160],"date_expired":expiry<date.today(),"authenticity_verified":False})
+    return {"task_id":t.task_id,"state":"HUMAN_REVIEW","result":{"certifications":out,"issuing_body_contacted":False}}
+
+def _compare_supplier_quotes(t,s):
+    rows=t.payload.get("supplier_quotes"); quantity=t.payload.get("required_quantity")
+    if not isinstance(rows,list) or not rows or not isinstance(quantity,int) or isinstance(quantity,bool) or quantity<1:
+        return {"task_id":t.task_id,"state":"NEEDS_ADAPTER","reason":"supplier_quotes_and_required_quantity_needed"}
+    out=[]
+    for x in rows:
+        moq=x.get("moq") if isinstance(x,dict) else None
+        if not isinstance(moq,int) or isinstance(moq,bool) or moq<1: return {"task_id":t.task_id,"state":"BLOCKED","reason":"supplier_moq_invalid"}
+        unit=_minor(x,"unit_price_minor"); shipping=_minor(x,"shipping_minor",0)
+        order_qty=max(quantity,moq)
+        out.append({"supplier_id":str(x.get("supplier_id",""))[:100],"currency":_currency(x),"order_quantity":order_qty,"total_cost_minor":unit*order_qty+shipping,"lead_days":_num(x.get("lead_days"),"lead_days",0),"supplier_verified":False})
+    if len({x["currency"] for x in out})>1: return {"task_id":t.task_id,"state":"NEEDS_ADAPTER","reason":"currency_normalization_required"}
+    out.sort(key=lambda x:x["total_cost_minor"])
+    return {"task_id":t.task_id,"state":"HUMAN_REVIEW","result":{"supplier_comparison":out,"purchase_order_created":False}}
+
+def _normalize_market_offers(t,s):
+    offers=t.payload.get("offers")
+    if not isinstance(offers,list) or not offers: return {"task_id":t.task_id,"state":"NEEDS_ADAPTER","reason":"market_offers_required"}
+    grams={"g":1.0,"kg":1000.0,"troy_oz":31.1034768}; out=[]
+    for x in offers:
+        if not isinstance(x,dict): return {"task_id":t.task_id,"state":"BLOCKED","reason":"offer_record_invalid"}
+        unit=str(x.get("weight_unit","")).lower()
+        if unit not in grams: return {"task_id":t.task_id,"state":"BLOCKED","reason":"weight_unit_invalid"}
+        weight=_num(x.get("weight"),"weight",0.000001); purity=_num(x.get("purity_bps"),"purity_bps",1,10000)
+        price=_minor(x,"price_minor"); tax=_minor(x,"tax_minor",0); shipping=_minor(x,"shipping_minor",0)
+        currency=_currency(x); base=str(x.get("base_currency",currency)).upper()
+        if not re.fullmatch(r"[A-Z]{3}",base): return {"task_id":t.task_id,"state":"BLOCKED","reason":"base_currency_invalid"}
+        fx=x.get("fx_rate_to_base",1 if currency==base else None)
+        if fx is None: return {"task_id":t.task_id,"state":"NEEDS_ADAPTER","reason":"fx_rate_required"}
+        fx=_num(fx,"fx_rate_to_base",0.000001); pure_grams=weight*grams[unit]*purity/10000
+        landed=(price+tax+shipping)*fx
+        out.append({"offer_id":str(x.get("offer_id",""))[:100],"base_currency":base,"pure_grams":round(pure_grams,8),"landed_cost_base_minor":round(landed,2),"landed_minor_per_pure_gram":round(landed/pure_grams,4),"tax_shipping_included":True,"fx_conversion_required":currency!=base,"fx_rate_source_verified":False})
+    return {"task_id":t.task_id,"state":"HUMAN_REVIEW","result":{"normalized_offers":out,"external_offer_verified":False}}
+
+def _compare_offers(t,s):
+    offers=t.payload.get("offers")
+    if not isinstance(offers,list) or not offers: return {"task_id":t.task_id,"state":"NEEDS_ADAPTER","reason":"normalized_offers_required"}
+    if any(not isinstance(x,dict) or "landed_cost_minor" not in x for x in offers): return {"task_id":t.task_id,"state":"BLOCKED","reason":"normalized_offer_invalid"}
+    currencies={_currency(x) for x in offers}
+    if len(currencies)>1: return {"task_id":t.task_id,"state":"NEEDS_ADAPTER","reason":"currency_normalization_required"}
+    ranked=sorted([{"offer_id":str(x.get("offer_id",""))[:100],"landed_cost_minor":_minor(x,"landed_cost_minor"),"currency":_currency(x)} for x in offers],key=lambda x:x["landed_cost_minor"])
+    return {"task_id":t.task_id,"state":"HUMAN_REVIEW","result":{"ranked_offers":ranked,"provider_terms_verified":False,"purchase_recommended":False}}
+
+def _record_date_evidence(t,s):
+    result=_record_sources(t,s)
+    if result.get("state")!="SUCCEEDED": return result
+    evidence=t.payload.get("evidence")
+    if not isinstance(evidence,list) or not evidence: return {"task_id":t.task_id,"state":"NEEDS_ADAPTER","reason":"evidence_required"}
+    return {"task_id":t.task_id,"state":"SUCCEEDED","result":{"source_count":len(result["result"]["sources"]),"evidence_count":len(evidence),"date_and_evidence_structure_validated":True,"remote_verification_performed":False}}
+
 class _Handler:
     def __init__(self, fn): self.fn=fn
     def run(self, task, spec): return self.fn(task,spec)
@@ -201,5 +357,18 @@ def build_task_handlers():
       ("GAMMA","research_analysis","assess_market_issuer_concentration_liquidity_fx_risks"):_assess_risks,
       ("GAMMA","research_analysis","build_adverse_base_favorable_scenarios"):_build_scenarios,
       ("GAMMA","research_analysis","record_price_currency_liquidity_spread_fees"):_record_price_context,
+      ("ALPHA","upgrade_collectors","collect_authorized_quotes"):_collect_authorized_quotes,
+      ("ALPHA","upgrade_collectors","normalize_currency_unit"):_normalize_currency_unit,
+      ("ALPHA","upgrade_collectors","calculate_spread_costs"):_calculate_spread_costs,
+      ("ALPHA","upgrade_collectors","record_availability_timestamp"):_record_availability,
+      ("ALPHA","upgrade_collectors","identify_instrument_issuer"):_identify_instrument_issuer,
+      ("ALPHA","upgrade_collectors","review_structure_fees_liquidity"):_review_structure_fees_liquidity,
+      ("ALPHA","upgrade_collectors","record_risks"):_record_risks,
+      ("ALPHA","upgrade_collectors","research_suppliers"):_research_suppliers,
+      ("ALPHA","upgrade_collectors","verify_declared_certifications"):_verify_certifications,
+      ("ALPHA","upgrade_collectors","compare_moq_logistics_lead_times_costs"):_compare_supplier_quotes,
+      ("ALPHA","upgrade_collectors","normalize_unit_purity_currency_tax_shipping"):_normalize_market_offers,
+      ("ALPHA","upgrade_collectors","compare_offers"):_compare_offers,
+      ("ALPHA","upgrade_collectors","record_date_and_evidence"):_record_date_evidence,
     }
     return {key:_Handler(fn) for key,fn in funcs.items()}
