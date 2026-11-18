@@ -1,16 +1,13 @@
 import tempfile
 import unittest
 from pathlib import Path
-
 from core.store import TaskStore
 from core.runtime import WorkerRuntime
 from core.orchestrator import Orchestrator
 
-
 class EchoWorker:
     def run(self, task):
         return {"task_id": task.task_id, "state": "PREPARED", "pulpo": task.pulpo}
-
 
 class RuntimeTests(unittest.TestCase):
     def setUp(self):
@@ -38,12 +35,12 @@ class RuntimeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.runtime.enqueue("t1", "DELTA", "anything", {})
 
-    def test_missing_worker_is_recorded_as_safe_block(self):
+    def test_missing_worker_is_blocked_not_successful(self):
         runtime = WorkerRuntime(self.store, Orchestrator())
         runtime.enqueue("t2", "BETA", "affiliate", {})
         result = runtime.run_once()
-        self.assertEqual(result["outcome"]["state"], "BLOCKED")
-
+        self.assertEqual(result["state"], "BLOCKED")
+        self.assertEqual(self.store.get("t2")["state"], "BLOCKED")
 
 if __name__ == "__main__":
     unittest.main()
