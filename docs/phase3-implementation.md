@@ -1,17 +1,15 @@
 # Phase 3 — bots, persistencia y conectores
 
-## Bot families and catalog handlers
+## Catálogo y handlers
 
 El catálogo versionado contiene 81 tareas (ALPHA 37, BETA 29, GAMMA 15). El runtime valida la combinación pulpo/bloque/tarea. Las tareas sin handler se detienen en NEEDS_ADAPTER; las tareas desconocidas quedan BLOCKED.
 
-Hay 16 handlers locales deterministas registrados:
-- ALPHA: record_sources, score_opportunity, identify_customer_pain y compare_commissions.
-- BETA: calculate_total_price, calculate_net_after_reserves, normalize_skus_variants_categories, deduplicate_catalog, verify_price_stock_currency_timestamp y configure_margin_commission_rules.
-- GAMMA: separate_confirmed_and_pending_cash, calculate_potential_available_capital, identify_exact_instrument, assess_market_issuer_concentration_liquidity_fx_risks, build_adverse_base_favorable_scenarios y record_price_currency_liquidity_spread_fees.
+Hay 29 handlers locales deterministas:
+- ALPHA: 4 handlers de inteligencia comercial más 13 tareas Upgrade distribuidas en oro físico spot, instrumentos vinculados, supply chain y diferenciales de mercado.
+- BETA: cálculo de precio total, cálculo neto tras reservas, normalización de SKU, deduplicación, validación de precio/stock y cálculo de margen/comisión.
+- GAMMA: separación de efectivo confirmado/pendiente, capital potencial tras reservas, identificación de instrumentos, riesgos de concentración/liquidez/FX, escenarios y spread/fees.
 
-Los handlers usan exclusivamente datos suministrados, no consultan fuentes externas ni publican cambios. Las propuestas de oportunidad, margen, instrumento y riesgo terminan en HUMAN_REVIEW. GAMMA permanece RESEARCH_ONLY.
-
-Los workers generales también cubren intake/plan/QA básico en ALPHA, oportunidad/consentimiento/comisiones en BETA y research/data-quality/risk-gate en GAMMA. No equivalen a conectores de mercado ni a ejecución comercial externa.
+Los handlers Upgrade validan y calculan exclusivamente sobre datos suministrados; no descargan feeds, no verifican licencias/proveedores/certificados ni ejecutan compras. Las propuestas comerciales, precios, instrumentos y riesgos terminan en HUMAN_REVIEW cuando corresponde. GAMMA permanece RESEARCH_ONLY.
 
 ## Runtime
 
@@ -36,4 +34,4 @@ No existe capacidad para iniciar transferencias, payouts, reembolsos, compras, s
 
 ## Validation
 
-CI ejecuta compileall y 63 pruebas unitarias/integración local con Python 3.11. Los tests loopback no sustituyen el handshake remoto, el sandbox del proveedor, la conciliación real ni las pruebas de caída/recuperación del despliegue.
+CI ejecuta compileall y 76 pruebas unitarias/integración local con Python 3.11. Los tests loopback no sustituyen el handshake remoto, el sandbox del proveedor, la conciliación real ni las pruebas de caída/recuperación del despliegue.

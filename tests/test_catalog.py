@@ -20,6 +20,17 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(catalog.task_count, 81)
         self.assertEqual(catalog.pulpo_counts, {"ALPHA": 37, "BETA": 29, "GAMMA": 15})
 
+    def test_registered_handlers_match_catalog_and_pulpo_counts(self):
+        from collections import Counter
+        from core.task_handlers import build_task_handlers
+        catalog = TaskCatalog()
+        handlers = build_task_handlers()
+        self.assertEqual(len(handlers), 29)
+        self.assertEqual(dict(Counter(key[0] for key in handlers)),
+                         {"ALPHA": 17, "BETA": 6, "GAMMA": 6})
+        for pulpo, block, task_key in handlers:
+            self.assertIsNotNone(catalog.get_task(pulpo, block, task_key))
+
     def test_declared_task_without_handler_is_needs_adapter(self):
         self.runtime.enqueue("alpha-brief-1", "ALPHA", "digital_assets_acquisition",
                              {"block": "digital_assets_acquisition",
