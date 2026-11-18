@@ -73,7 +73,11 @@ class Orchestrator:
                         "block": block, "task_key": task_key, "required_inputs": required,
                         "missing_required_inputs": [],
                         "execution_mode": spec.get("execution_mode", "connector_required_or_awaiting_connector")}
-            return handler.run(task, spec)
+            try:
+                return handler.run(task, spec)
+            except ValueError as exc:
+                return {"task_id": task.task_id, "state": "BLOCKED",
+                        "reason": "invalid_task_input", "detail": str(exc)[:250]}
 
         worker = self.workers.get(task.pulpo)
         if worker is None:

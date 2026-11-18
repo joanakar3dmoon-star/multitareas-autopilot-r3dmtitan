@@ -101,6 +101,12 @@ class DomainHandlerTests(unittest.TestCase):
                          {"adverse": 8000, "base": 10000, "favorable": 11500})
         self.assertFalse(result["outcome"]["result"]["forecast_or_prediction"])
 
+    def test_invalid_catalog_input_is_blocked_not_retried(self):
+        result = self.run_task("BETA", "merchandising", "calculate_total_price",
+            {"product_minor": 1000, "currency": "EURO"})
+        self.assertEqual(result["state"], "BLOCKED")
+        self.assertEqual(result["outcome"]["reason"], "invalid_task_input")
+
     def test_gamma_price_context_calculates_spread_from_supplied_values(self):
         result = self.run_task("GAMMA", "research_analysis", "record_price_currency_liquidity_spread_fees",
             {"price_minor": 10100, "bid_minor": 10000, "ask_minor": 10200,
