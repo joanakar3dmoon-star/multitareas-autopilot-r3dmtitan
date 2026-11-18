@@ -1,40 +1,46 @@
 # R3DM TITAN — Multitareas Autopilot
 
-**Estado: scaffold inicial aislado; NO está conectado ni desplegado en producción.**
+**Estado: base inicial importada; todavía no está conectada ni desplegada en producción.**
 
-Este módulo vive dentro del repositorio QUASAR, pero mantiene su propia arquitectura y sus propios tres Pulpos. No sustituye los cinco Pulpos históricos de QUASAR ni modifica sus rutas, tablas o despliegues.
+Este repositorio es el negocio independiente **Multitareas Autopilot** dentro del ecosistema R3DM/TITAN. Mantiene código, configuración, datos, clientes, operaciones y cobros separados de QUASAR y de Superagente Multifunción. Puede reutilizar servicios compartidos mediante adaptadores explícitos y contratos versionados, sin acoplar ni sustituir los proyectos existentes.
+
+## Objetivo operativo
+
+Autonomía de extremo a extremo en tareas comerciales y operativas permitidas, con supervisión automática, recuperación, trazabilidad y alertas. La única comprobación rutinaria del titular será verificar que los cobros liquidados han llegado a su cuenta. Esto requiere integrar y probar PSP/banco, webhooks firmados y conciliación; no se considera implementado por esta base inicial.
 
 ## Los tres Pulpos
 
-- **ALPHA — Multitareas y servicios autónomos:** automatización de procesos digitales, trabajos por encargo, producción web, páginas y plataformas, operaciones con bots y workers IA.
-- **BETA — Marketplace, afiliación y ventas por comisión:** descubrimiento de oportunidades, ofertas, leads, citas, seguimiento, negociación asistida, cierre y conciliación de comisiones. Respeta las reglas y pagos de cada plataforma.
-- **GAMMA — Autoinversión no cripto:** investigación y análisis de activos tradicionales, asignación, riesgo, seguimiento y aprendizaje. Sin cripto. El modo inicial es análisis; cualquier orden real requiere broker autorizado, controles de riesgo y aprobación explícita.
+- **ALPHA — Multitareas y servicios autónomos:** captación y análisis de encargos, planificación, automatización, desarrollo web, diseño, contenido, datos, QA, entrega y soporte.
+- **BETA — Marketplace, afiliación y ventas:** oportunidades, catálogo, ofertas, leads, pedidos, seguimiento, atribución y conciliación de comisiones.
+- **GAMMA — Investigación de inversión tradicional:** acciones, ETF, fondos, bonos, oro y materias primas. Sin criptomonedas. Modo inicial `RESEARCH_ONLY`; no envía órdenes de inversión.
 
-## Cerebro común
+## Límites financieros invariables
 
-Un orquestador coordina los tres Pulpos, sus familias de bots, workers, verticales, flujos y ciclos. El Cerebro debe reutilizarse mediante un adaptador explícito si se integra con el Cerebro de QUASAR; no se importará código antiguo a ciegas.
-
-## Seguridad económica
-
-- Los agentes pueden preparar trabajos, gestionar cobros y conciliar pagos mediante proveedores autorizados.
-- No pueden iniciar gastos, transferencias salientes, compras de créditos, suscripciones ni órdenes de inversión sin autorización humana explícita.
-- Cobro recibido no equivale a saldo disponible ni a beneficio neto.
-- IVA, retenciones/IRPF, comisiones, devoluciones y costes se registran por separado.
-- No se guardan claves, IBAN completos ni credenciales en Git.
+- Se permiten cobros entrantes únicamente mediante proveedores autorizados, webhooks verificados y conciliación.
+- Los agentes no pueden gastar, comprar, contratar suscripciones, transferir, retirar ni mover fondos.
+- No se conceden permisos financieros a un agente por decisión del propio agente.
+- IVA, retenciones, comisiones, devoluciones, costes y beneficio neto se contabilizan por separado.
+- No se inventan ventas, clientes, saldos ni cobros. No se guardan secretos, credenciales ni IBAN completos en Git.
 
 ## Estructura
 
-- `core/`: Cerebro, orquestación, permisos y ledger.
+- `core/`: cerebro, orquestación y permisos.
 - `pulpos/`: ALPHA, BETA y GAMMA.
 - `docs/`: arquitectura, inventario de integraciones y puertas de producción.
-- `tests/`: pruebas locales iniciales.
+- `tests/`: pruebas iniciales.
 
-## Estado de ejecución
+## Hitos de implementación
 
-Este primer commit establece contratos y límites de seguridad. No afirma que Dealwork, marketplaces, afiliados, proveedores IA, bancos SEPA o brokers estén conectados. Las integraciones existentes en QUASAR se inventariarán y enlazarán una a una, con pruebas y evidencia antes de activar cada conexión.
+1. Completar los bloques operativos de ALPHA, BETA y GAMMA.
+2. Especializar el agente central para planificar, priorizar, coordinar y recuperar tareas.
+3. Implementar bots, submódulos, persistencia y conectores ejecutables.
+4. Construir puentes seguros con Cerebro y Multifunción, conservando la separación entre proyectos.
+5. Ejecutar pruebas integrales, validar cobros reales de forma controlada y preparar producción.
 
-## Pruebas
+## Pruebas iniciales
 
 ```sh
-cd multitareas-autopilot-r3dmtitan && python -m unittest discover -s tests -v
+python -m unittest discover -s tests -v
 ```
+
+La presencia de código no demuestra que una API, proveedor, banco o marketplace esté conectado. No activar producción hasta superar las puertas descritas en `docs/production-gates.md`.
