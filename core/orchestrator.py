@@ -59,15 +59,19 @@ class Orchestrator:
             if spec is None:
                 return {"task_id": task.task_id, "state": "BLOCKED",
                         "reason": "task_not_in_catalog", "block": block, "task_key": task_key}
+            required = spec.get("required_inputs", [])
+            missing = [field for field in required
+                       if field != "job_id" and not task.payload.get(field)]
+            if missing:
+                return {"task_id": task.task_id, "state": "NEEDS_ADAPTER",
+                        "reason": "required_inputs_missing", "block": block,
+                        "task_key": task_key, "missing_required_inputs": missing}
             handler = self.task_handlers.get((task.pulpo, block, task_key))
             if handler is None:
-                required = spec.get("required_inputs", [])
-                missing = [field for field in required
-                           if field not in {"job_id"} and not task.payload.get(field)]
                 return {"task_id": task.task_id, "state": "NEEDS_ADAPTER",
                         "reason": "task_handler_not_registered", "catalog_version": self.catalog.version,
                         "block": block, "task_key": task_key, "required_inputs": required,
-                        "missing_required_inputs": missing,
+                        "missing_required_inputs": [],
                         "execution_mode": spec.get("execution_mode", "connector_required_or_awaiting_connector")}
             return handler.run(task, spec)
 
