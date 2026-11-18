@@ -1,7 +1,8 @@
-"""SQLite persistence for tasks and append-only operational audit events."""
+"""SQLite persistence for tasks, audit events and the durable bridge outbox."""
 from __future__ import annotations
 import json
 import sqlite3
+import uuid
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any
@@ -12,7 +13,7 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 class TaskStore:
-    """Durable SQLite queue with atomic claims, leases and append-only audit."""
+    """Durable SQLite queue with atomic claims, leases and append-only audit/outbox."""
     def __init__(self, database: str = "data/multitareas.db") -> None:
         if database == ":memory:":
             raise ValueError("TaskStore requires a file-backed database for durable queue semantics")
@@ -46,6 +47,19 @@ class TaskStore:
                     created_at TEXT NOT NULL,
                     FOREIGN KEY(task_id) REFERENCES tasks(task_id)
                 );
+                CREATE TABLE IF NOT EXISTS bridge_outbox (
+                    event_id TEXT PRIMARY KEY, event_type TEXT NOT NULL,
+                    payload TEXT NOT NULL, created_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS bridge_deliveries (
+                    event_id TEXT NOT NULL, destination TEXT NOT NULL,
+                    state TEXT NOT NULL DEFAULT 'PENDING', attempts INTEGER NOT NULL DEFAULT 0,
+                    next_attempt_at TEXT NOT NULL, last_error TEXT, delivered_at TEXT,
+                    PRIMARY KEY(event_id,destination),
+                    FOREIGN KEY(event_id) REFERENCES bridge_outbox(event_id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_bridge_pending
+                    ON bridge_deliveries(destination,state,next_attempt_at);
             """)
             columns = {row["name"] for row in db.execute("PRAGMA table_info(tasks)")}
             if "lease_until" not in columns:
@@ -90,7 +104,7 @@ class TaskStore:
         with self._connect() as db:
             db.execute("BEGIN IMMEDIATE")
             expired = db.execute("""
-                SELECT task_id,attempts,max_attempts FROM tasks
+                SELECT task_id,attempts,max_attempts,pulpo,vertical FROM tasks
                 WHERE state='RUNNING' AND (lease_until IS NULL OR lease_until <= ?)
             """, (now,)).fetchall()
             for row in expired:
@@ -101,6 +115,9 @@ class TaskStore:
                 """, (state, now, "worker_lease_expired", now, row["task_id"]))
                 self._audit(db, row["task_id"], "TASK_LEASE_EXPIRED", "runtime",
                             {"attempt": row["attempts"], "resulting_state": state})
+                self._queue_bridge_event(db, "task.state_changed",
+                    {"task_id": row["task_id"], "pulpo": row["pulpo"],
+                     "vertical": row["vertical"], "state": state})
             row = db.execute("""
                 SELECT * FROM tasks
                 WHERE state IN ('QUEUED','RETRY') AND available_at <= ?
@@ -142,6 +159,10 @@ class TaskStore:
             raise ValueError(f"Unsupported terminal state: {state}")
         now = utc_now()
         with self._connect() as db:
+            row = db.execute("SELECT pulpo,vertical FROM tasks WHERE task_id=? AND state='RUNNING'",
+                             (task_id,)).fetchone()
+            if row is None:
+                raise ValueError("Task is not RUNNING or does not exist")
             changed = db.execute("""
                 UPDATE tasks SET state=?, result=?, last_error=NULL, lease_until=NULL, updated_at=?
                 WHERE task_id=? AND state='RUNNING'
@@ -150,6 +171,9 @@ class TaskStore:
                 raise ValueError("Task is not RUNNING or does not exist")
             self._audit(db, task_id, "TASK_" + state, "worker",
                         {"result_keys": sorted(result)})
+            self._queue_bridge_event(db, "task.state_changed",
+                {"task_id": task_id, "pulpo": row["pulpo"],
+                 "vertical": row["vertical"], "state": state})
 
     def complete(self, task_id: str, result: dict[str, Any]) -> None:
         self.finish(task_id, result, "SUCCEEDED")
@@ -157,7 +181,7 @@ class TaskStore:
     def fail(self, task_id: str, error: str, retry_delay_seconds: int = 30) -> str:
         now = utc_now()
         with self._connect() as db:
-            row = db.execute("SELECT attempts,max_attempts FROM tasks WHERE task_id=? AND state='RUNNING'",
+            row = db.execute("SELECT attempts,max_attempts,pulpo,vertical FROM tasks WHERE task_id=? AND state='RUNNING'",
                              (task_id,)).fetchone()
             if row is None:
                 raise ValueError("Task is not RUNNING or does not exist")
@@ -168,26 +192,70 @@ class TaskStore:
                        (state, error[:2000], retry_at, now, task_id))
             self._audit(db, task_id, "TASK_" + state, "worker",
                         {"error": error[:500], "attempt": row["attempts"]})
+            self._queue_bridge_event(db, "task.state_changed",
+                {"task_id": task_id, "pulpo": row["pulpo"],
+                 "vertical": row["vertical"], "state": state})
             return state
 
-    def get(self, task_id: str) -> dict[str, Any] | None:
+    def pending_bridge_events(self, destination: str = "cerebro", limit: int = 20) -> list[dict[str, Any]]:
+        if destination != "cerebro":
+            raise ValueError("unsupported bridge destination")
+        if not 1 <= limit <= 200:
+            raise ValueError("limit must be between 1 and 200")
+        now = utc_now()
         with self._connect() as db:
-            row = db.execute("SELECT * FROM tasks WHERE task_id=?", (task_id,)).fetchone()
-            if not row:
-                return None
-            item = dict(row)
-            item["payload"] = json.loads(item["payload"])
-            item["result"] = json.loads(item["result"]) if item["result"] else None
-            return item
+            rows = db.execute("""
+                SELECT o.event_id,o.event_type,o.payload,o.created_at,d.attempts
+                FROM bridge_outbox o JOIN bridge_deliveries d USING(event_id)
+                WHERE d.destination=? AND d.state='PENDING' AND d.next_attempt_at<=?
+                ORDER BY o.created_at LIMIT ?
+            """, (destination, now, limit)).fetchall()
+            result = []
+            for row in rows:
+                item = dict(row)
+                item["payload"] = json.loads(item["payload"])
+                result.append(item)
+            return result
 
-    def audit(self, task_id: str | None = None) -> list[dict[str, Any]]:
+    def mark_bridge_delivered(self, event_id: str, destination: str) -> None:
+        now = utc_now()
         with self._connect() as db:
-            if task_id:
-                rows = db.execute("SELECT * FROM audit_events WHERE task_id=? ORDER BY event_id",
-                                  (task_id,)).fetchall()
-            else:
-                rows = db.execute("SELECT * FROM audit_events ORDER BY event_id").fetchall()
-            return [dict(row) for row in rows]
+            changed = db.execute("""
+                UPDATE bridge_deliveries SET state='DELIVERED',delivered_at=?,last_error=NULL
+                WHERE event_id=? AND destination=? AND state='PENDING'
+            """, (now, event_id, destination)).rowcount
+            if changed != 1:
+                raise ValueError("bridge delivery is not pending")
+
+    def mark_bridge_failed(self, event_id: str, destination: str, error: str) -> None:
+        with self._connect() as db:
+            row = db.execute("SELECT attempts FROM bridge_deliveries WHERE event_id=? AND destination=? AND state='PENDING'",
+                             (event_id, destination)).fetchone()
+            if row is None:
+                raise ValueError("bridge delivery is not pending")
+            attempts = row["attempts"] + 1
+            delay = min(3600, 5 * (2 ** min(attempts, 9)))
+            retry_at = (datetime.now(timezone.utc) + timedelta(seconds=delay)).isoformat()
+            db.execute("""
+                UPDATE bridge_deliveries SET attempts=?,next_attempt_at=?,last_error=?
+                WHERE event_id=? AND destination=? AND state='PENDING'
+            """, (attempts, retry_at, str(error)[:500], event_id, destination))
+
+    def count_pending_bridge_events(self, destination: str = "cerebro") -> int:
+        with self._connect() as db:
+            return db.execute("SELECT COUNT(*) FROM bridge_deliveries WHERE destination=? AND state='PENDING'",
+                              (destination,)).fetchone()[0]
+
+    @staticmethod
+    def _queue_bridge_event(db: sqlite3.Connection, event_type: str,
+                            payload: dict[str, Any]) -> str:
+        event_id = str(uuid.uuid4())
+        now = utc_now()
+        db.execute("INSERT INTO bridge_outbox(event_id,event_type,payload,created_at) VALUES(?,?,?,?)",
+                   (event_id, event_type, json.dumps(payload, ensure_ascii=False, sort_keys=True), now))
+        db.execute("""INSERT INTO bridge_deliveries(event_id,destination,state,attempts,next_attempt_at)
+                      VALUES(?,'cerebro','PENDING',0,?)""", (event_id, now))
+        return event_id
 
     @staticmethod
     def _audit(db: sqlite3.Connection, task_id: str, event_type: str,
