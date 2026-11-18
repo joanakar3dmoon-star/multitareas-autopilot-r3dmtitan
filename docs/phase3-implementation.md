@@ -4,10 +4,12 @@
 
 El catálogo versionado contiene 81 tareas (ALPHA 37, BETA 29, GAMMA 15). El runtime valida la combinación pulpo/bloque/tarea. Las tareas sin handler se detienen en NEEDS_ADAPTER; las tareas desconocidas quedan BLOCKED.
 
-Handlers locales registrados:
-- ALPHA: record_sources valida estructura HTTPS/proveedor/timestamp sin hacer fetch; score_opportunity calcula una puntuación versionada a partir de componentes aportados y requiere revisión humana.
-- BETA: calculate_total_price suma unidades monetarias menores aportadas; calculate_net_after_reserves separa IVA, impuestos, fees, devoluciones, costes y reservas, excluyendo cobros pendientes.
-- GAMMA: separate_confirmed_and_pending_cash no mezcla efectivo pendiente; calculate_potential_available_capital descuenta reservas y termina en HUMAN_REVIEW.
+Hay 16 handlers locales deterministas registrados:
+- ALPHA: record_sources, score_opportunity, identify_customer_pain y compare_commissions.
+- BETA: calculate_total_price, calculate_net_after_reserves, normalize_skus_variants_categories, deduplicate_catalog, verify_price_stock_currency_timestamp y configure_margin_commission_rules.
+- GAMMA: separate_confirmed_and_pending_cash, calculate_potential_available_capital, identify_exact_instrument, assess_market_issuer_concentration_liquidity_fx_risks, build_adverse_base_favorable_scenarios y record_price_currency_liquidity_spread_fees.
+
+Los handlers usan exclusivamente datos suministrados, no consultan fuentes externas ni publican cambios. Las propuestas de oportunidad, margen, instrumento y riesgo terminan en HUMAN_REVIEW. GAMMA permanece RESEARCH_ONLY.
 
 Los workers generales también cubren intake/plan/QA básico en ALPHA, oportunidad/consentimiento/comisiones en BETA y research/data-quality/risk-gate en GAMMA. No equivalen a conectores de mercado ni a ejecución comercial externa.
 
@@ -34,4 +36,4 @@ No existe capacidad para iniciar transferencias, payouts, reembolsos, compras, s
 
 ## Validation
 
-CI ejecuta compilación y tests unitarios con Python 3.11. Los tests no sustituyen el handshake remoto, el sandbox del proveedor, la conciliación real ni las pruebas de caída/recuperación del despliegue.
+CI ejecuta compileall y 63 pruebas unitarias/integración local con Python 3.11. Los tests loopback no sustituyen el handshake remoto, el sandbox del proveedor, la conciliación real ni las pruebas de caída/recuperación del despliegue.

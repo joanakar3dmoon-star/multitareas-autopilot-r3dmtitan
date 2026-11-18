@@ -1,19 +1,19 @@
 # R3DM TITAN — Multitareas Autopilot
 
-**Estado: runtime local, catálogo de 81 tareas, planificador central y puentes preparados; conexiones comerciales reales y producción pendientes.**
+**Estado: runtime local, catálogo de 81 tareas, 16 handlers iniciales, planificador central y puentes preparados; conexiones comerciales reales y producción pendientes.**
 
 Este repositorio es el negocio independiente **Multitareas Autopilot** dentro del ecosistema R3DM/TITAN. Mantiene código, configuración, datos, clientes, operaciones y cobros separados de QUASAR y de Superagente Multifunción. La reutilización entre proyectos se hace mediante adaptadores y contratos versionados, sin fusionar sus repositorios.
 
 ## Los tres Pulpos
 
-- **ALPHA — Multitareas y servicios digitales:** intake, planificación, QA básico, registro estructural de fuentes y puntuación de oportunidades aportadas.
-- **BETA — Marketplace y ventas:** clasificación de oportunidades, cualificación con consentimiento, conciliación aritmética de comisiones, cálculo de precio total y cálculo neto tras reservas.
-- **GAMMA — Investigación tradicional:** validación estructural de datos, gate de exposición con entradas explícitas, separación de efectivo confirmado/pendiente y propuesta de capital tras reservas. Sin cripto y sin órdenes de inversión.
+- **ALPHA — Multitareas y servicios digitales:** intake, planificación, QA básico, registro estructural de fuentes, puntuación de oportunidades, problemas de clientes y comparación de comisiones.
+- **BETA — Marketplace y ventas:** clasificación de oportunidades, cualificación con consentimiento, conciliación aritmética de comisiones, cálculo de precios, márgenes y reservas, normalización y deduplicación de catálogo.
+- **GAMMA — Investigación tradicional:** validación estructural de datos, identificación de instrumentos, evaluación de concentración/liquidez/FX, escenarios aritméticos, separación de efectivo confirmado/pendiente y propuesta de capital tras reservas. Sin cripto y sin órdenes de inversión.
 
 ## Núcleo implementado
 
 - Catálogo versionado de 81 tareas: ALPHA 37, BETA 29, GAMMA 15; tareas sin handler se detienen en NEEDS_ADAPTER.
-- Seis handlers locales deterministas para fuentes, oportunidades, precios, reservas y capital.
+- 16 handlers locales deterministas: ALPHA 4, BETA 6 y GAMMA 6.
 - Planificador central asistido por IA que solo propone tareas del catálogo y nunca las ejecuta.
 - Cola SQLite durable con reclamación atómica, idempotencia, auditoría, leases, recuperación y outbox.
 - Runtime por lotes, scheduler opt-in y punto de entrada run_worker.py.
@@ -21,7 +21,7 @@ Este repositorio es el negocio independiente **Multitareas Autopilot** dentro de
 - Marketplace desactivado por defecto.
 - Helper HMAC genérico y ledger idempotente de cobros entrantes en estado PENDING_RECONCILIATION.
 - Puente HMAC preparado hacia Cerebro y cliente explícito de trabajos hacia Multifunción, ambos pendientes de conexión remota.
-- CI de Python 3.11: 52 pruebas unitarias/integración local superadas en el último run verificado.
+- CI de Python 3.11: 63 pruebas unitarias/integración local superadas en el último run verificado.
 
 ## Límites financieros
 
