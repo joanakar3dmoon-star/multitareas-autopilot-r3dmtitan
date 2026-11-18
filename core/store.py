@@ -1,6 +1,5 @@
 """SQLite persistence for tasks and append-only operational audit events."""
 from __future__ import annotations
-
 import json
 import sqlite3
 from datetime import datetime, timezone
@@ -9,18 +8,16 @@ from typing import Any
 
 TERMINAL_STATES = {"SUCCEEDED", "BLOCKED", "HUMAN_REVIEW", "RESEARCH_ONLY", "NEEDS_ADAPTER"}
 
-
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
-
 class TaskStore:
     """Durable SQLite queue with atomic claims and an append-only audit trail."""
-
     def __init__(self, database: str = "data/multitareas.db") -> None:
+        if database == ":memory:":
+            raise ValueError("TaskStore requires a file-backed database for durable queue semantics")
         self.database = database
-        if database != ":memory:":
-            Path(database).parent.mkdir(parents=True, exist_ok=True)
+        Path(database).parent.mkdir(parents=True, exist_ok=True)
         self._initialize()
 
     def _connect(self) -> sqlite3.Connection:
@@ -65,6 +62,12 @@ class TaskStore:
     def enqueue(self, task_id: str, pulpo: str, vertical: str,
                 payload: dict[str, Any], idempotency_key: str | None = None,
                 max_attempts: int = 3) -> dict[str, Any]:
+        if not isinstance(task_id, str) or not task_id.strip():
+            raise ValueError("task_id is required")
+        if not isinstance(pulpo, str) or not isinstance(vertical, str) or not vertical.strip():
+            raise ValueError("pulpo and vertical are required")
+        if not isinstance(payload, dict):
+            raise ValueError("payload must be an object")
         now = utc_now()
         if max_attempts < 1:
             raise ValueError("max_attempts must be >= 1")

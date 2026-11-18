@@ -2,9 +2,7 @@ import json
 import os
 import unittest
 from unittest.mock import patch
-
 from core.brain import chat, provider_config
-
 
 class FakeResponse:
     status = 200
@@ -17,7 +15,6 @@ class FakeResponse:
     def read(self, _limit):
         return self.payload
 
-
 class BrainTests(unittest.TestCase):
     @patch.dict(os.environ, {"AI_PROVIDER": "ollama", "OLLAMA_MODEL": "local-model",
                              "OLLAMA_BASE_URL": "http://localhost:11434"}, clear=True)
@@ -28,6 +25,12 @@ class BrainTests(unittest.TestCase):
         self.assertEqual(result, "listo")
         self.assertEqual(mocked.call_args.args[0].full_url,
                          "http://localhost:11434/api/chat")
+
+    @patch.dict(os.environ, {"AI_PROVIDER": "ollama", "OLLAMA_MODEL": "model",
+                             "OLLAMA_BASE_URL": "http://remote.example:11434"}, clear=True)
+    def test_ollama_remote_host_is_rejected(self):
+        with self.assertRaises(PermissionError):
+            chat([{"role": "user", "content": "hello"}])
 
     @patch.dict(os.environ, {"AI_PROVIDER": "openai", "OPENAI_MODEL": "m",
                              "OPENAI_BASE_URL": "https://example.invalid/v1",
@@ -43,7 +46,6 @@ class BrainTests(unittest.TestCase):
     def test_prompt_size_is_bounded(self):
         with self.assertRaises(ValueError):
             chat([{"role": "user", "content": "x" * 100_001}])
-
 
 if __name__ == "__main__":
     unittest.main()
