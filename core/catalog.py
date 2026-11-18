@@ -24,12 +24,12 @@ class TaskCatalog:
                 block_id = block.get("id")
                 if not isinstance(block_id, str) or not block_id:
                     raise ValueError(f"invalid block in {pulpo_id}")
-                for task in block.get("tasks", []):
+                for task in (block.get("tasks") or []):
                     self._add(pulpo_id, block_id, task, None)
                     count += 1
-                for family in block.get("families", []):
+                for family in (block.get("families") or []):
                     family_id = family.get("id")
-                    for task in family.get("tasks", []):
+                    for task in (family.get("tasks") or []):
                         self._add(pulpo_id, block_id, task, family_id)
                         count += 1
             self._counts[pulpo_id] = count
