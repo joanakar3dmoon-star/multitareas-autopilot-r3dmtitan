@@ -7,13 +7,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+TERMINAL_STATES = {"SUCCEEDED", "BLOCKED", "HUMAN_REVIEW", "RESEARCH_ONLY", "NEEDS_ADAPTER"}
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
 class TaskStore:
-    """Small durable queue. Connections are short-lived and safe across worker threads."""
+    """Durable SQLite queue with atomic claims and an append-only audit trail."""
 
     def __init__(self, database: str = "data/multitareas.db") -> None:
         self.database = database
@@ -108,16 +110,22 @@ class TaskStore:
             claimed["payload"] = json.loads(claimed["payload"])
             return claimed
 
-    def complete(self, task_id: str, result: dict[str, Any]) -> None:
+    def finish(self, task_id: str, result: dict[str, Any], state: str = "SUCCEEDED") -> None:
+        if state not in TERMINAL_STATES:
+            raise ValueError(f"Unsupported terminal state: {state}")
         now = utc_now()
         with self._connect() as db:
             changed = db.execute("""
-                UPDATE tasks SET state='SUCCEEDED', result=?, last_error=NULL, updated_at=?
+                UPDATE tasks SET state=?, result=?, last_error=NULL, updated_at=?
                 WHERE task_id=? AND state='RUNNING'
-            """, (json.dumps(result, ensure_ascii=False, sort_keys=True), now, task_id)).rowcount
+            """, (state, json.dumps(result, ensure_ascii=False, sort_keys=True), now, task_id)).rowcount
             if changed != 1:
                 raise ValueError("Task is not RUNNING or does not exist")
-            self._audit(db, task_id, "TASK_SUCCEEDED", "worker", {"result_keys": sorted(result)})
+            self._audit(db, task_id, "TASK_" + state, "worker",
+                        {"result_keys": sorted(result)})
+
+    def complete(self, task_id: str, result: dict[str, Any]) -> None:
+        self.finish(task_id, result, "SUCCEEDED")
 
     def fail(self, task_id: str, error: str, retry_delay_seconds: int = 30) -> str:
         now = utc_now()
