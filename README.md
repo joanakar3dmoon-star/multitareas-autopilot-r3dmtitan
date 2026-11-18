@@ -1,6 +1,6 @@
 # R3DM TITAN — Multitareas Autopilot
 
-**Estado: runtime local, catálogo de 81 tareas y handlers iniciales integrados; conectores comerciales reales y producción pendientes.**
+**Estado: runtime local, catálogo de 81 tareas, planificador central y puentes preparados; conexiones comerciales reales y producción pendientes.**
 
 Este repositorio es el negocio independiente **Multitareas Autopilot** dentro del ecosistema R3DM/TITAN. Mantiene código, configuración, datos, clientes, operaciones y cobros separados de QUASAR y de Superagente Multifunción. La reutilización entre proyectos se hace mediante adaptadores y contratos versionados, sin fusionar sus repositorios.
 
@@ -12,19 +12,20 @@ Este repositorio es el negocio independiente **Multitareas Autopilot** dentro de
 
 ## Núcleo implementado
 
-- Catálogo versionado de 81 tareas: ALPHA 37, BETA 29, GAMMA 15.
-- Seis handlers locales deterministas para registrar fuentes, puntuar oportunidades, calcular precios, separar reservas y efectivo.
+- Catálogo versionado de 81 tareas: ALPHA 37, BETA 29, GAMMA 15; tareas sin handler se detienen en NEEDS_ADAPTER.
+- Seis handlers locales deterministas para fuentes, oportunidades, precios, reservas y capital.
+- Planificador central asistido por IA que solo propone tareas del catálogo y nunca las ejecuta.
 - Cola SQLite durable con reclamación atómica, idempotencia, auditoría, leases, recuperación y outbox.
 - Runtime por lotes, scheduler opt-in y punto de entrada run_worker.py.
 - Adaptador Ollama restringido a localhost; IA remota desactivada por defecto.
 - Marketplace desactivado por defecto.
 - Helper HMAC genérico y ledger idempotente de cobros entrantes en estado PENDING_RECONCILIATION.
-- Puente HMAC preparado hacia Cerebro y cliente explícito de trabajos hacia Multifunción, ambos pendientes de configuración/roundtrip.
-- CI de Python 3.11 con compilación y suite unitaria.
+- Puente HMAC preparado hacia Cerebro y cliente explícito de trabajos hacia Multifunción, ambos pendientes de conexión remota.
+- CI de Python 3.11: 52 pruebas unitarias/integración local superadas en el último run verificado.
 
 ## Límites financieros
 
-Los agentes no pueden gastar, comprar, contratar suscripciones, transferir, retirar, reembolsar ni ejecutar órdenes de inversión. Los cobros entrantes solo se registran tras verificar la firma específica del proveedor; la conciliación PSP/banco aún no está conectada. IVA, retenciones, comisiones, devoluciones, costes y beneficio neto deben permanecer separados.
+Los agentes no pueden gastar, comprar, contratar suscripciones, transferir, retirar, reembolsar ni ejecutar órdenes de inversión. GAMMA permanece RESEARCH_ONLY. Los cobros entrantes solo se registran tras verificar la firma específica del proveedor; la conciliación PSP/banco aún no está conectada. IVA, retenciones, comisiones, devoluciones, costes y beneficio neto deben permanecer separados.
 
 ## Ejecución local
 

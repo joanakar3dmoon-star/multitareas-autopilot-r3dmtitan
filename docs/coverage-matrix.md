@@ -45,13 +45,13 @@
 
 - SQLite: cola persistente, idempotencia, auditoría, leases, recuperación y outbox de eventos mínimos.
 - Catálogo: 81 tareas cargadas y validadas; 6 handlers deterministas locales registrados. Las tareas restantes sin handler quedan en NEEDS_ADAPTER.
-- CI: suite unitaria Python 3.11 y compileall; consultar el último workflow para el recuento verificado.
-- Cerebro: evento local y cliente HMAC preparado; falta endpoint receptor real, ruta confirmada y roundtrip remoto.
-- Multifunción: cliente explícito a /api/pulpos/jobs, desactivado por defecto; la API objetivo está en PR #4 del otro repositorio y no se considera desplegada.
+- CI: 52 pruebas unitarias y de integración local superadas en GitHub Actions con Python 3.11 y compileall.
+- Cerebro: evento local y cliente HMAC preparado; roundtrip loopback validado, falta endpoint receptor real, ruta confirmada y roundtrip remoto.
+- Multifunción: cliente explícito a /api/pulpos/jobs; handoff loopback validado, permanece desactivado por defecto y la API objetivo del otro repositorio no se considera desplegada.
 - Pagos: helper HMAC genérico y ledger local idempotente; no es integración de Stripe/Bizum ni conciliación bancaria.
-- IA: adaptador Ollama local; no se ha probado una inferencia real en el hosting.
+- IA: adaptador Ollama local y planificador por catálogo; no se ha probado una inferencia real en el hosting.
 - Hosting: no desplegado; no hay disponibilidad 24/7 demostrada.
 
 ## Regla de estado
 
-Una tarea de catálogo sin handler se mantiene en NEEDS_ADAPTER. Una tarea con datos incompletos no se marca como verificada. Un evento en outbox no se considera entregado hasta recibir respuesta HTTP satisfactoria. Un cobro no se considera conciliado por existir en el ledger.
+Una tarea de catálogo sin handler se mantiene en NEEDS_ADAPTER. Una tarea con datos incompletos no se marca como verificada. Un evento en outbox no se considera entregado hasta recibir acuse positivo. Un cobro no se considera conciliado por existir en el ledger.

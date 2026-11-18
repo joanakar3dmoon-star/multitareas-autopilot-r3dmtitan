@@ -1,16 +1,17 @@
 # Puertas obligatorias antes de producción
 
-1. **Código:** módulos completos, dependencias fijadas, tests unitarios e integración, análisis estático y CI verde.
-2. **Persistencia:** base de datos durable, migraciones, idempotencia, backup externo y restauración probada.
-3. **IA:** proveedor elegido y probado, límites de gasto, fallback, timeout, privacidad y trazabilidad.
-4. **Plataformas:** API oficial, credenciales en gestor de secretos, scopes mínimos, cumplimiento de términos y sandbox/E2E.
-5. **Cobros:** webhook firmado, deduplicación, conciliación PSP/banco, devoluciones, chargebacks y cuenta verificada.
-6. **SEPA:** distinguir cobros entrantes de transferencias salientes. Activar solo la capacidad necesaria; ninguna transferencia saliente queda autorizada por defecto.
-7. **Fiscalidad España:** titular y situación fiscal confirmados, facturación conforme a normativa aplicable, IVA y retenciones separados, revisión profesional cuando corresponda. El ledger no sustituye software de facturación legal.
-8. **GAMMA:** RESEARCH_ONLY hasta que exista broker identificado y autorizado, instrumentos permitidos, límites duros, control de exposición, reconciliación y aprobación humana de cada orden real.
-9. **Operación 24/7:** health checks, watchdog, reintentos limitados, alertas, rotación de logs, recuperación y prueba de caída.
-10. **Go-live:** despliegue separado, backup y rollback; validar endpoints, heartbeats y una operación real controlada. GitHub verde no equivale a producción.
+1. **Código:** handlers previstos, dependencias auditadas, tests unitarios e integración local, análisis estático y CI verde. El catálogo por sí solo no satisface esta puerta.
+2. **Persistencia:** SQLite durable, migraciones, idempotencia, outbox, backup externo y restauración probada en un entorno distinto.
+3. **IA:** Ollama local instalado y probado; límites de contexto/respuesta, timeout, privacidad y trazabilidad. IA remota permanece desactivada salvo autorización expresa y presupuesto definido.
+4. **Plataformas:** API oficial por proveedor, credenciales en gestor de secretos, scopes mínimos, revisión de términos, sandbox y prueba E2E específica.
+5. **Cobros entrantes:** webhook específico firmado, protección contra replay, deduplicación, validación de importe/divisa/pedido, conciliación PSP/banco y tratamiento de devoluciones/chargebacks. Un registro local no equivale a dinero liquidado en cuenta.
+6. **Dinero saliente:** bloqueado permanentemente para los agentes. Sin gastos, compras, suscripciones, payouts, reembolsos, transferencias ni retiradas autónomas. El titular revisa los cobros liquidados; los agentes no mueven fondos.
+7. **Fiscalidad España:** titular y situación fiscal confirmados, facturación conforme a normativa aplicable, IVA, retenciones, comisiones y reservas separados; revisión profesional cuando corresponda. El ledger no sustituye software de facturación legal.
+8. **GAMMA:** modo RESEARCH_ONLY permanente. Sin conexión a broker, sin órdenes, sin trading, sin cripto y sin apalancamiento especulativo. Solo investigación de activos tradicionales y propuestas informativas.
+9. **Puentes:** endpoint receptor real de Cerebro, secreto rotado, handshake y roundtrip; API de Multifunción integrada/desplegada, token separado, scopes mínimos, idempotencia remota y prueba de payload permitido. Los tests loopback no satisfacen esta puerta.
+10. **Operación 24/7:** despliegue separado, health checks, watchdog, alertas, rotación de logs, backup externo, restauración, recuperación tras caída y prueba prolongada de carga.
+11. **Go-live:** despliegue separado, rollback, validación de endpoints y una operación real controlada que no permita salidas de dinero. GitHub verde no equivale a producción.
 
 ## Parada segura
 
-Ante credenciales inválidas, datos de mercado obsoletos, discrepancia bancaria, riesgo fuera de límite, webhook no verificable, worker sin heartbeat o fallo de QA: bloquear nuevas acciones externas y escalar a revisión humana.
+Ante credenciales inválidas, datos de mercado caducados, discrepancia bancaria, webhook no verificable, worker sin heartbeat, error de firma, fallo de QA o endpoint no autorizado: detener nuevas acciones externas, conservar evidencia y escalar a revisión humana.
