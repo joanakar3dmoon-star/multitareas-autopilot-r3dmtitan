@@ -1,11 +1,8 @@
 """Deterministic worker loop over the durable task queue."""
 from __future__ import annotations
-
 from typing import Any
-
 from core.store import TaskStore, TERMINAL_STATES
 from core.orchestrator import Orchestrator, Task
-
 
 class WorkerRuntime:
     def __init__(self, store: TaskStore, orchestrator: Orchestrator) -> None:
@@ -27,8 +24,9 @@ class WorkerRuntime:
             outcome = self.orchestrator.dispatch(task)
             if not isinstance(outcome, dict):
                 raise TypeError("Worker must return a dictionary result")
-            requested_state = outcome.get("state", "SUCCEEDED")
-            final_state = requested_state if requested_state in TERMINAL_STATES else "SUCCEEDED"
+            requested_state = outcome.get("state")
+            # Never infer success from an unknown or merely descriptive worker state.
+            final_state = requested_state if requested_state in TERMINAL_STATES else "HUMAN_REVIEW"
             self.store.finish(task.task_id, outcome, final_state)
             return {"task_id": task.task_id, "state": final_state, "outcome": outcome}
         except Exception as exc:

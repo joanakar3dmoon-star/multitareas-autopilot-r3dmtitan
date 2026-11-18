@@ -7,7 +7,11 @@ from core.orchestrator import Orchestrator
 
 class EchoWorker:
     def run(self, task):
-        return {"task_id": task.task_id, "state": "PREPARED", "pulpo": task.pulpo}
+        return {"task_id": task.task_id, "state": "SUCCEEDED", "pulpo": task.pulpo}
+
+class UnclearWorker:
+    def run(self, task):
+        return {"task_id": task.task_id, "state": "PREPARED"}
 
 class RuntimeTests(unittest.TestCase):
     def setUp(self):
@@ -55,6 +59,13 @@ class RuntimeTests(unittest.TestCase):
         result = self.runtime.run_once()
         self.assertEqual(result["state"], "BLOCKED")
         self.assertEqual(result["outcome"]["reason"], "permission_denied")
+
+    def test_unknown_worker_state_is_not_counted_as_success(self):
+        runtime = WorkerRuntime(self.store, Orchestrator({"ALPHA": UnclearWorker()}))
+        runtime.enqueue("t6", "ALPHA", "websites", {})
+        result = runtime.run_once()
+        self.assertEqual(result["state"], "HUMAN_REVIEW")
+        self.assertEqual(self.store.get("t6")["state"], "HUMAN_REVIEW")
 
 if __name__ == "__main__":
     unittest.main()
