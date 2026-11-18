@@ -76,16 +76,34 @@ class Phase4BridgeTests(unittest.TestCase):
     def test_multifuncion_disabled_and_payload_allowlisted(self):
         client=MultifuncionClient(enabled=False)
         self.assertFalse(client.create_job("ALPHA","task",{}, "key")["created"])
-        client=MultifuncionClient(enabled=True,base_url="https://mf.example",token="t"*40)
-        with self.assertRaises(ValueError):
-            client.create_job("ALPHA","task",{"payment_amount":100},"key")
+        with patch.dict("os.environ", {"MULTIFUNCION_BRIDGE_ENABLED":"1"}):
+            client=MultifuncionClient(enabled=True,base_url="https://mf.example",token="t"*40)
+            with patch("connectors.bridge.multifuncion.request_json",
+                       return_value={"accepted":True,"job_id":"remote-1"}) as mocked:
+                result=client.create_job("ALPHA","alpha.intake",{"task_id":"task-1"},
+                                         "request-key-123")
+            self.assertTrue(result["accepted"])
+            self.assertEqual(mocked.call_args.kwargs["headers"]["X-Pulpo-Token"],"t"*40)
+            self.assertEqual(mocked.call_args.kwargs["payload"]["worker"],"alpha.intake")
+            self.assertEqual(mocked.call_args.kwargs["payload"]["pulpo"],"ALPHA")
 
-    def test_multifuncion_requires_https_secret_and_valid_pulpo(self):
+    def test_multifuncion_rejects_nested_sensitive_payload_and_requires_flag(self):
         with self.assertRaises(ValueError):
-            MultifuncionClient(enabled=True,base_url="http://mf.example",token="t"*40)
-        client=MultifuncionClient(enabled=True,base_url="https://mf.example",token="t"*40)
-        with self.assertRaises(ValueError):
-            client.create_job("DELTA","task",{},"key")
+            MultifuncionClient(enabled=True,base_url="https://mf.example",token="t"*40)
+        with patch.dict("os.environ", {"MULTIFUNCION_BRIDGE_ENABLED":"1"}):
+            client=MultifuncionClient(enabled=True,base_url="https://mf.example",token="t"*40)
+            with self.assertRaises(ValueError):
+                client.create_job("ALPHA","alpha.intake",
+                                  {"input_ref":{"metadata":[{"email":"person@example.com"}]}},
+                                  "request-key-123")
+
+    def test_multifuncion_requires_https_and_valid_pulpo(self):
+        with patch.dict("os.environ", {"MULTIFUNCION_BRIDGE_ENABLED":"1"}):
+            with self.assertRaises(ValueError):
+                MultifuncionClient(enabled=True,base_url="http://mf.example",token="t"*40)
+            client=MultifuncionClient(enabled=True,base_url="https://mf.example",token="t"*40)
+            with self.assertRaises(ValueError):
+                client.create_job("DELTA","alpha.intake",{},"request-key-123")
 
 if __name__ == "__main__":
     unittest.main()

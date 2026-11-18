@@ -15,7 +15,7 @@ Este repositorio es el negocio independiente **Multitareas Autopilot** dentro de
 - Catálogo versionado de 81 tareas: ALPHA 37, BETA 29, GAMMA 15; tareas sin handler se detienen en NEEDS_ADAPTER.
 - 29 handlers locales deterministas: ALPHA 17, BETA 6 y GAMMA 6.
 - Planificador central asistido por IA que solo propone tareas del catálogo y nunca las ejecuta.
-- API HTTP autenticada para encolar tareas, consultar estado, ver cobertura y pedir planes; worker thread integrado.
+- API HTTP autenticada para encolar tareas, consultar estado, ver cobertura y pedir planes; endpoint explícito y autenticado para entregar jobs a Multifunción; worker thread integrado.
 - Cola SQLite durable con reclamación atómica, idempotencia, auditoría, leases, recuperación y outbox.
 - Adaptador Ollama restringido a localhost; IA remota desactivada por defecto.
 - Marketplace desactivado por defecto.
@@ -56,7 +56,8 @@ Multifunción:
 - MULTIFUNCION_BRIDGE_ENABLED=1
 - MULTIFUNCION_BASE_URL=https://<host>
 - MULTIFUNCION_API_TOKEN=<token de servicio independiente de al menos 32 caracteres>
-- Ruta API prevista: POST /api/pulpos/jobs, con Idempotency-Key.
+- Ruta API: POST /api/pulpos/jobs, cabecera X-Pulpo-Token e Idempotency-Key; el token de destino debe coincidir con PULPO_API_TOKEN en Multifunción.
+- El envío se realiza explícitamente mediante POST /api/bridges/multifuncion/jobs en Multitareas; no se reenvían tareas automáticamente.
 
 No actives ninguna variable todavía: QUASAR PR #123 y Multifunción PR #4 siguen pendientes de merge/despliegue. Los secretos deben configurarse únicamente en el gestor de secretos del hosting, nunca en Git ni en archivos de configuración.
 

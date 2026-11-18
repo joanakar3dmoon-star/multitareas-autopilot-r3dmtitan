@@ -14,12 +14,20 @@ class FakePlanner:
         return {"state": "HUMAN_REVIEW", "summary": request_context,
                 "tasks": [], "external_actions_executed": False}
 
+class FakeMultifuncionBridge:
+    configured = True
+    def __init__(self):
+        self.calls = []
+    def enqueue(self, pulpo, worker, payload, idempotency_key):
+        self.calls.append((pulpo, worker, payload, idempotency_key))
+        return {"accepted": True, "job_id": "remote-job-1", "duplicate": False}
+
 class ApiServerTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.server = build_server("127.0.0.1", 0,
             database=str(Path(self.tmp.name) / "api.db"),
-            api_token=TOKEN, planner=FakePlanner())
+            api_token=TOKEN, planner=FakePlanner(), multifuncion_bridge=FakeMultifuncionBridge())
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
         self.base = f"http://127.0.0.1:{self.server.server_port}"
@@ -30,10 +38,12 @@ class ApiServerTests(unittest.TestCase):
         self.thread.join(timeout=2)
         self.tmp.cleanup()
 
-    def request(self, path, method="GET", body=None, token=TOKEN):
+    def request(self, path, method="GET", body=None, token=TOKEN, extra_headers=None):
         headers = {}
         if token:
             headers["X-Multitareas-Token"] = token
+        if extra_headers:
+            headers.update(extra_headers)
         data = None
         if body is not None:
             data = json.dumps(body).encode()
@@ -72,6 +82,25 @@ class ApiServerTests(unittest.TestCase):
             body = json.loads(response.read())
         self.assertEqual(body["task_count"], 81)
         self.assertEqual(body["handler_counts"], {"ALPHA": 17, "BETA": 6, "GAMMA": 6})
+
+    def test_multifuncion_bridge_status_is_authenticated(self):
+        with self.assertRaises(HTTPError) as error:
+            self.request("/api/bridges/status", token="")
+        self.assertEqual(error.exception.code, 401)
+        with self.request("/api/bridges/status") as response:
+            body = json.loads(response.read())
+        self.assertTrue(body["multifuncion"]["configured"])
+
+    def test_multifuncion_job_handoff_is_explicit_and_idempotency_keyed(self):
+        body = {"pulpo": "ALPHA", "worker": "alpha.intake",
+                "payload": {"task_id": "task-1", "vertical": "digital_services"}}
+        with self.request("/api/bridges/multifuncion/jobs", "POST", body,
+                          extra_headers={"Idempotency-Key": "remote-job-key-123"}) as response:
+            result = json.loads(response.read())
+            self.assertEqual(response.status, 202)
+        self.assertEqual(result["job_id"], "remote-job-1")
+        self.assertEqual(self.server.multifuncion_bridge.calls,
+                         [("ALPHA", "alpha.intake", body["payload"], "remote-job-key-123")])
 
     def test_plan_endpoint_returns_proposal_only(self):
         with self.request("/api/plans", "POST",
