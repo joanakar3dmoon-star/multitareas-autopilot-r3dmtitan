@@ -1,0 +1,3776 @@
+{
+  "schema_version": "1.0.0",
+  "catalog_version": "1.0.0",
+  "generated_for_branch": "integracion/tres-pulpos-upgrade",
+  "notice": "Especificaciones funcionales declarativas. No implican que exista un conector externo o ejecución real.",
+  "global_contract": {
+    "job_fields": [
+      "job_id",
+      "pulpo",
+      "block",
+      "task",
+      "payload_version",
+      "source_refs",
+      "observed_at",
+      "expires_at",
+      "evidence",
+      "assumptions",
+      "missing_data",
+      "cost_estimate",
+      "risk_level",
+      "compliance_checks",
+      "approval_required",
+      "approval_status",
+      "status",
+      "result",
+      "error",
+      "created_at",
+      "updated_at"
+    ],
+    "states": [
+      "draft",
+      "queued",
+      "running",
+      "awaiting_connector",
+      "awaiting_review",
+      "blocked",
+      "completed",
+      "failed"
+    ],
+    "invariants": [
+      "No generar fuentes, precios, leads, stock, pagos ni ingresos ficticios",
+      "Toda observación externa incluye URL HTTPS, proveedor y timestamp",
+      "Datos caducados no pueden alimentar decisiones como si fueran actuales",
+      "Las acciones externas sensibles requieren aprobación humana",
+      "No gastos, compras, transferencias ni retiradas autónomas",
+      "GAMMA no ejecuta operaciones de inversión ni trading",
+      "IVA, impuestos, comisiones, devoluciones y reservas no son beneficio disponible",
+      "Los cambios de código requieren revisión, pruebas y despliegue humano"
+    ]
+  },
+  "pulpos": [
+    {
+      "id": "ALPHA",
+      "name": "Afiliación, inteligencia comercial y recolectores Upgrade",
+      "blocks": [
+        {
+          "id": "market_intelligence",
+          "title": "Inteligencia de mercado",
+          "purpose": "Bloque funcional de ALPHA / Inteligencia de mercado.",
+          "families": null,
+          "tasks": [
+            {
+              "id": "discover_niches",
+              "title": "Discover Niches",
+              "purpose": "Realizar discover niches dentro del bloque Inteligencia de mercado de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "analyze_demand",
+              "title": "Analyze Demand",
+              "purpose": "Realizar analyze demand dentro del bloque Inteligencia de mercado de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "analyze_competitors",
+              "title": "Analyze Competitors",
+              "purpose": "Realizar analyze competitors dentro del bloque Inteligencia de mercado de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "identify_customer_pain",
+              "title": "Identify Customer Pain",
+              "purpose": "Realizar identify customer pain dentro del bloque Inteligencia de mercado de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "score_opportunity",
+              "title": "Score Opportunity",
+              "purpose": "Realizar score opportunity dentro del bloque Inteligencia de mercado de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "record_sources",
+              "title": "Record Sources",
+              "purpose": "Realizar record sources dentro del bloque Inteligencia de mercado de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "affiliate_operations",
+          "title": "Operaciones de afiliación",
+          "purpose": "Bloque funcional de ALPHA / Operaciones de afiliación.",
+          "families": null,
+          "tasks": [
+            {
+              "id": "catalog_programs",
+              "title": "Catalog Programs",
+              "purpose": "Realizar catalog programs dentro del bloque Operaciones de afiliación de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "check_eligibility_terms",
+              "title": "Check Eligibility Terms",
+              "purpose": "Realizar check eligibility terms dentro del bloque Operaciones de afiliación de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "compare_commissions",
+              "title": "Compare Commissions",
+              "purpose": "Realizar compare commissions dentro del bloque Operaciones de afiliación de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "track_attribution",
+              "title": "Track Attribution",
+              "purpose": "Realizar track attribution dentro del bloque Operaciones de afiliación de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "track_clicks_leads_conversions",
+              "title": "Track Clicks Leads Conversions",
+              "purpose": "Realizar track clicks leads conversions dentro del bloque Operaciones de afiliación de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "reconcile_commissions",
+              "title": "Reconcile Commissions",
+              "purpose": "Realizar reconcile commissions dentro del bloque Operaciones de afiliación de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "alert_terms_changes",
+              "title": "Alert Terms Changes",
+              "purpose": "Realizar alert terms changes dentro del bloque Operaciones de afiliación de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "review_ad_disclosure",
+              "title": "Review Ad Disclosure",
+              "purpose": "Realizar review ad disclosure dentro del bloque Operaciones de afiliación de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "upgrade_collectors",
+          "title": "Recolectores Upgrade",
+          "purpose": "Bloque funcional de ALPHA / Recolectores Upgrade.",
+          "families": [
+            {
+              "id": "gold_physical_spot",
+              "title": "Gold Physical Spot",
+              "tasks": [
+                {
+                  "id": "collect_authorized_quotes",
+                  "title": "Collect Authorized Quotes",
+                  "purpose": "Realizar collect authorized quotes dentro del bloque Recolectores Upgrade de ALPHA.",
+                  "required_inputs": [
+                    "job_id",
+                    "request_context"
+                  ],
+                  "conditional_inputs": [
+                    "source_refs[]",
+                    "observed_at",
+                    "provider_id",
+                    "source_payload"
+                  ],
+                  "validations": [
+                    "Validar esquema y tipos de entrada",
+                    "Comprobar pertenencia del worker al Pulpo y al bloque",
+                    "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                    "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+                  ],
+                  "outputs": [
+                    "status",
+                    "result",
+                    "evidence[]",
+                    "warnings[]",
+                    "missing_data[]",
+                    "created_at"
+                  ],
+                  "execution_mode": "connector_required_or_awaiting_connector",
+                  "permissions": {
+                    "read": true,
+                    "write_internal": true,
+                    "external_side_effects": false,
+                    "spend": false,
+                    "transfer": false,
+                    "trade": false,
+                    "human_approval_required": false
+                  },
+                  "acceptance_criteria": [
+                    "Salida estructurada y trazable",
+                    "Errores explícitos y estado normalizado",
+                    "Sin afirmaciones de éxito sin evidencia",
+                    "Operación repetible sin duplicar efectos externos"
+                  ]
+                },
+                {
+                  "id": "normalize_currency_unit",
+                  "title": "Normalize Currency Unit",
+                  "purpose": "Realizar normalize currency unit dentro del bloque Recolectores Upgrade de ALPHA.",
+                  "required_inputs": [
+                    "job_id",
+                    "request_context"
+                  ],
+                  "conditional_inputs": [
+                    "validated_records[]",
+                    "evidence[]"
+                  ],
+                  "validations": [
+                    "Validar esquema y tipos de entrada",
+                    "Comprobar pertenencia del worker al Pulpo y al bloque",
+                    "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                    "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+                  ],
+                  "outputs": [
+                    "status",
+                    "result",
+                    "evidence[]",
+                    "warnings[]",
+                    "missing_data[]",
+                    "created_at"
+                  ],
+                  "execution_mode": "internal_deterministic_or_review",
+                  "permissions": {
+                    "read": true,
+                    "write_internal": true,
+                    "external_side_effects": false,
+                    "spend": false,
+                    "transfer": false,
+                    "trade": false,
+                    "human_approval_required": false
+                  },
+                  "acceptance_criteria": [
+                    "Salida estructurada y trazable",
+                    "Errores explícitos y estado normalizado",
+                    "Sin afirmaciones de éxito sin evidencia",
+                    "Operación repetible sin duplicar efectos externos"
+                  ]
+                },
+                {
+                  "id": "calculate_spread_costs",
+                  "title": "Calculate Spread Costs",
+                  "purpose": "Realizar calculate spread costs dentro del bloque Recolectores Upgrade de ALPHA.",
+                  "required_inputs": [
+                    "job_id",
+                    "request_context"
+                  ],
+                  "conditional_inputs": [
+                    "validated_records[]",
+                    "evidence[]"
+                  ],
+                  "validations": [
+                    "Validar esquema y tipos de entrada",
+                    "Comprobar pertenencia del worker al Pulpo y al bloque",
+                    "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                    "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+                  ],
+                  "outputs": [
+                    "status",
+                    "result",
+                    "evidence[]",
+                    "warnings[]",
+                    "missing_data[]",
+                    "created_at"
+                  ],
+                  "execution_mode": "internal_deterministic_or_review",
+                  "permissions": {
+                    "read": true,
+                    "write_internal": true,
+                    "external_side_effects": false,
+                    "spend": false,
+                    "transfer": false,
+                    "trade": false,
+                    "human_approval_required": false
+                  },
+                  "acceptance_criteria": [
+                    "Salida estructurada y trazable",
+                    "Errores explícitos y estado normalizado",
+                    "Sin afirmaciones de éxito sin evidencia",
+                    "Operación repetible sin duplicar efectos externos"
+                  ]
+                },
+                {
+                  "id": "record_availability_timestamp",
+                  "title": "Record Availability Timestamp",
+                  "purpose": "Realizar record availability timestamp dentro del bloque Recolectores Upgrade de ALPHA.",
+                  "required_inputs": [
+                    "job_id",
+                    "request_context"
+                  ],
+                  "conditional_inputs": [
+                    "validated_records[]",
+                    "evidence[]"
+                  ],
+                  "validations": [
+                    "Validar esquema y tipos de entrada",
+                    "Comprobar pertenencia del worker al Pulpo y al bloque",
+                    "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                    "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+                  ],
+                  "outputs": [
+                    "status",
+                    "result",
+                    "evidence[]",
+                    "warnings[]",
+                    "missing_data[]",
+                    "created_at"
+                  ],
+                  "execution_mode": "internal_deterministic_or_review",
+                  "permissions": {
+                    "read": true,
+                    "write_internal": true,
+                    "external_side_effects": false,
+                    "spend": false,
+                    "transfer": false,
+                    "trade": false,
+                    "human_approval_required": false
+                  },
+                  "acceptance_criteria": [
+                    "Salida estructurada y trazable",
+                    "Errores explícitos y estado normalizado",
+                    "Sin afirmaciones de éxito sin evidencia",
+                    "Operación repetible sin duplicar efectos externos"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "gold_linked_instruments",
+              "title": "Gold Linked Instruments",
+              "tasks": [
+                {
+                  "id": "identify_instrument_issuer",
+                  "title": "Identify Instrument Issuer",
+                  "purpose": "Realizar identify instrument issuer dentro del bloque Recolectores Upgrade de ALPHA.",
+                  "required_inputs": [
+                    "job_id",
+                    "request_context"
+                  ],
+                  "conditional_inputs": [
+                    "source_refs[]",
+                    "observed_at",
+                    "provider_id",
+                    "source_payload"
+                  ],
+                  "validations": [
+                    "Validar esquema y tipos de entrada",
+                    "Comprobar pertenencia del worker al Pulpo y al bloque",
+                    "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                    "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+                  ],
+                  "outputs": [
+                    "status",
+                    "result",
+                    "evidence[]",
+                    "warnings[]",
+                    "missing_data[]",
+                    "created_at"
+                  ],
+                  "execution_mode": "connector_required_or_awaiting_connector",
+                  "permissions": {
+                    "read": true,
+                    "write_internal": true,
+                    "external_side_effects": false,
+                    "spend": false,
+                    "transfer": false,
+                    "trade": false,
+                    "human_approval_required": false
+                  },
+                  "acceptance_criteria": [
+                    "Salida estructurada y trazable",
+                    "Errores explícitos y estado normalizado",
+                    "Sin afirmaciones de éxito sin evidencia",
+                    "Operación repetible sin duplicar efectos externos"
+                  ]
+                },
+                {
+                  "id": "review_structure_fees_liquidity",
+                  "title": "Review Structure Fees Liquidity",
+                  "purpose": "Realizar review structure fees liquidity dentro del bloque Recolectores Upgrade de ALPHA.",
+                  "required_inputs": [
+                    "job_id",
+                    "request_context"
+                  ],
+                  "conditional_inputs": [
+                    "source_refs[]",
+                    "observed_at",
+                    "provider_id",
+                    "source_payload"
+                  ],
+                  "validations": [
+                    "Validar esquema y tipos de entrada",
+                    "Comprobar pertenencia del worker al Pulpo y al bloque",
+                    "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                    "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+                  ],
+                  "outputs": [
+                    "status",
+                    "result",
+                    "evidence[]",
+                    "warnings[]",
+                    "missing_data[]",
+                    "created_at"
+                  ],
+                  "execution_mode": "connector_required_or_awaiting_connector",
+                  "permissions": {
+                    "read": true,
+                    "write_internal": true,
+                    "external_side_effects": false,
+                    "spend": false,
+                    "transfer": false,
+                    "trade": false,
+                    "human_approval_required": false
+                  },
+                  "acceptance_criteria": [
+                    "Salida estructurada y trazable",
+                    "Errores explícitos y estado normalizado",
+                    "Sin afirmaciones de éxito sin evidencia",
+                    "Operación repetible sin duplicar efectos externos"
+                  ]
+                },
+                {
+                  "id": "record_risks",
+                  "title": "Record Risks",
+                  "purpose": "Realizar record risks dentro del bloque Recolectores Upgrade de ALPHA.",
+                  "required_inputs": [
+                    "job_id",
+                    "request_context"
+                  ],
+                  "conditional_inputs": [
+                    "validated_records[]",
+                    "evidence[]"
+                  ],
+                  "validations": [
+                    "Validar esquema y tipos de entrada",
+                    "Comprobar pertenencia del worker al Pulpo y al bloque",
+                    "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                    "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+                  ],
+                  "outputs": [
+                    "status",
+                    "result",
+                    "evidence[]",
+                    "warnings[]",
+                    "missing_data[]",
+                    "created_at"
+                  ],
+                  "execution_mode": "internal_deterministic_or_review",
+                  "permissions": {
+                    "read": true,
+                    "write_internal": true,
+                    "external_side_effects": false,
+                    "spend": false,
+                    "transfer": false,
+                    "trade": false,
+                    "human_approval_required": false
+                  },
+                  "acceptance_criteria": [
+                    "Salida estructurada y trazable",
+                    "Errores explícitos y estado normalizado",
+                    "Sin afirmaciones de éxito sin evidencia",
+                    "Operación repetible sin duplicar efectos externos"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "supply_chain",
+              "title": "Supply Chain",
+              "tasks": [
+                {
+                  "id": "research_suppliers",
+                  "title": "Research Suppliers",
+                  "purpose": "Realizar research suppliers dentro del bloque Recolectores Upgrade de ALPHA.",
+                  "required_inputs": [
+                    "job_id",
+                    "request_context"
+                  ],
+                  "conditional_inputs": [
+                    "source_refs[]",
+                    "observed_at",
+                    "provider_id",
+                    "source_payload"
+                  ],
+                  "validations": [
+                    "Validar esquema y tipos de entrada",
+                    "Comprobar pertenencia del worker al Pulpo y al bloque",
+                    "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                    "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+                  ],
+                  "outputs": [
+                    "status",
+                    "result",
+                    "evidence[]",
+                    "warnings[]",
+                    "missing_data[]",
+                    "created_at"
+                  ],
+                  "execution_mode": "connector_required_or_awaiting_connector",
+                  "permissions": {
+                    "read": true,
+                    "write_internal": true,
+                    "external_side_effects": false,
+                    "spend": false,
+                    "transfer": false,
+                    "trade": false,
+                    "human_approval_required": false
+                  },
+                  "acceptance_criteria": [
+                    "Salida estructurada y trazable",
+                    "Errores explícitos y estado normalizado",
+                    "Sin afirmaciones de éxito sin evidencia",
+                    "Operación repetible sin duplicar efectos externos"
+                  ]
+                },
+                {
+                  "id": "verify_declared_certifications",
+                  "title": "Verify Declared Certifications",
+                  "purpose": "Realizar verify declared certifications dentro del bloque Recolectores Upgrade de ALPHA.",
+                  "required_inputs": [
+                    "job_id",
+                    "request_context"
+                  ],
+                  "conditional_inputs": [
+                    "source_refs[]",
+                    "observed_at",
+                    "provider_id",
+                    "source_payload"
+                  ],
+                  "validations": [
+                    "Validar esquema y tipos de entrada",
+                    "Comprobar pertenencia del worker al Pulpo y al bloque",
+                    "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                    "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+                  ],
+                  "outputs": [
+                    "status",
+                    "result",
+                    "evidence[]",
+                    "warnings[]",
+                    "missing_data[]",
+                    "created_at"
+                  ],
+                  "execution_mode": "connector_required_or_awaiting_connector",
+                  "permissions": {
+                    "read": true,
+                    "write_internal": true,
+                    "external_side_effects": false,
+                    "spend": false,
+                    "transfer": false,
+                    "trade": false,
+                    "human_approval_required": false
+                  },
+                  "acceptance_criteria": [
+                    "Salida estructurada y trazable",
+                    "Errores explícitos y estado normalizado",
+                    "Sin afirmaciones de éxito sin evidencia",
+                    "Operación repetible sin duplicar efectos externos"
+                  ]
+                },
+                {
+                  "id": "compare_moq_logistics_lead_times_costs",
+                  "title": "Compare Moq Logistics Lead Times Costs",
+                  "purpose": "Realizar compare moq logistics lead times costs dentro del bloque Recolectores Upgrade de ALPHA.",
+                  "required_inputs": [
+                    "job_id",
+                    "request_context"
+                  ],
+                  "conditional_inputs": [
+                    "source_refs[]",
+                    "observed_at",
+                    "provider_id",
+                    "source_payload"
+                  ],
+                  "validations": [
+                    "Validar esquema y tipos de entrada",
+                    "Comprobar pertenencia del worker al Pulpo y al bloque",
+                    "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                    "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+                  ],
+                  "outputs": [
+                    "status",
+                    "result",
+                    "evidence[]",
+                    "warnings[]",
+                    "missing_data[]",
+                    "created_at"
+                  ],
+                  "execution_mode": "connector_required_or_awaiting_connector",
+                  "permissions": {
+                    "read": true,
+                    "write_internal": true,
+                    "external_side_effects": false,
+                    "spend": false,
+                    "transfer": false,
+                    "trade": false,
+                    "human_approval_required": true
+                  },
+                  "acceptance_criteria": [
+                    "Salida estructurada y trazable",
+                    "Errores explícitos y estado normalizado",
+                    "Sin afirmaciones de éxito sin evidencia",
+                    "Operación repetible sin duplicar efectos externos"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "market_differentials",
+              "title": "Market Differentials",
+              "tasks": [
+                {
+                  "id": "normalize_unit_purity_currency_tax_shipping",
+                  "title": "Normalize Unit Purity Currency Tax Shipping",
+                  "purpose": "Realizar normalize unit purity currency tax shipping dentro del bloque Recolectores Upgrade de ALPHA.",
+                  "required_inputs": [
+                    "job_id",
+                    "request_context"
+                  ],
+                  "conditional_inputs": [
+                    "source_refs[]",
+                    "observed_at",
+                    "provider_id",
+                    "source_payload"
+                  ],
+                  "validations": [
+                    "Validar esquema y tipos de entrada",
+                    "Comprobar pertenencia del worker al Pulpo y al bloque",
+                    "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                    "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+                  ],
+                  "outputs": [
+                    "status",
+                    "result",
+                    "evidence[]",
+                    "warnings[]",
+                    "missing_data[]",
+                    "created_at"
+                  ],
+                  "execution_mode": "connector_required_or_awaiting_connector",
+                  "permissions": {
+                    "read": true,
+                    "write_internal": true,
+                    "external_side_effects": false,
+                    "spend": false,
+                    "transfer": false,
+                    "trade": false,
+                    "human_approval_required": false
+                  },
+                  "acceptance_criteria": [
+                    "Salida estructurada y trazable",
+                    "Errores explícitos y estado normalizado",
+                    "Sin afirmaciones de éxito sin evidencia",
+                    "Operación repetible sin duplicar efectos externos"
+                  ]
+                },
+                {
+                  "id": "compare_offers",
+                  "title": "Compare Offers",
+                  "purpose": "Realizar compare offers dentro del bloque Recolectores Upgrade de ALPHA.",
+                  "required_inputs": [
+                    "job_id",
+                    "request_context"
+                  ],
+                  "conditional_inputs": [
+                    "source_refs[]",
+                    "observed_at",
+                    "provider_id",
+                    "source_payload"
+                  ],
+                  "validations": [
+                    "Validar esquema y tipos de entrada",
+                    "Comprobar pertenencia del worker al Pulpo y al bloque",
+                    "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                    "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+                  ],
+                  "outputs": [
+                    "status",
+                    "result",
+                    "evidence[]",
+                    "warnings[]",
+                    "missing_data[]",
+                    "created_at"
+                  ],
+                  "execution_mode": "connector_required_or_awaiting_connector",
+                  "permissions": {
+                    "read": true,
+                    "write_internal": true,
+                    "external_side_effects": false,
+                    "spend": false,
+                    "transfer": false,
+                    "trade": false,
+                    "human_approval_required": false
+                  },
+                  "acceptance_criteria": [
+                    "Salida estructurada y trazable",
+                    "Errores explícitos y estado normalizado",
+                    "Sin afirmaciones de éxito sin evidencia",
+                    "Operación repetible sin duplicar efectos externos"
+                  ]
+                },
+                {
+                  "id": "record_date_and_evidence",
+                  "title": "Record Date And Evidence",
+                  "purpose": "Realizar record date and evidence dentro del bloque Recolectores Upgrade de ALPHA.",
+                  "required_inputs": [
+                    "job_id",
+                    "request_context"
+                  ],
+                  "conditional_inputs": [
+                    "validated_records[]",
+                    "evidence[]"
+                  ],
+                  "validations": [
+                    "Validar esquema y tipos de entrada",
+                    "Comprobar pertenencia del worker al Pulpo y al bloque",
+                    "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                    "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+                  ],
+                  "outputs": [
+                    "status",
+                    "result",
+                    "evidence[]",
+                    "warnings[]",
+                    "missing_data[]",
+                    "created_at"
+                  ],
+                  "execution_mode": "internal_deterministic_or_review",
+                  "permissions": {
+                    "read": true,
+                    "write_internal": true,
+                    "external_side_effects": false,
+                    "spend": false,
+                    "transfer": false,
+                    "trade": false,
+                    "human_approval_required": false
+                  },
+                  "acceptance_criteria": [
+                    "Salida estructurada y trazable",
+                    "Errores explícitos y estado normalizado",
+                    "Sin afirmaciones de éxito sin evidencia",
+                    "Operación repetible sin duplicar efectos externos"
+                  ]
+                }
+              ]
+            }
+          ],
+          "tasks": []
+        },
+        {
+          "id": "digital_assets_acquisition",
+          "title": "Activos digitales y captación",
+          "purpose": "Bloque funcional de ALPHA / Activos digitales y captación.",
+          "families": null,
+          "tasks": [
+            {
+              "id": "research_digital_products",
+              "title": "Research Digital Products",
+              "purpose": "Realizar research digital products dentro del bloque Activos digitales y captación de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "verify_rights_licenses",
+              "title": "Verify Rights Licenses",
+              "purpose": "Realizar verify rights licenses dentro del bloque Activos digitales y captación de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "draft_product_brief",
+              "title": "Draft Product Brief",
+              "purpose": "Realizar draft product brief dentro del bloque Activos digitales y captación de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "draft_landing_and_lead_magnet",
+              "title": "Draft Landing And Lead Magnet",
+              "purpose": "Realizar draft landing and lead magnet dentro del bloque Activos digitales y captación de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "keyword_research",
+              "title": "Keyword Research",
+              "purpose": "Realizar keyword research dentro del bloque Activos digitales y captación de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "seo_audit",
+              "title": "Seo Audit",
+              "purpose": "Realizar seo audit dentro del bloque Activos digitales y captación de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "build_funnel_draft",
+              "title": "Build Funnel Draft",
+              "purpose": "Realizar build funnel draft dentro del bloque Activos digitales y captación de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "consent_aware_crm",
+              "title": "Consent Aware Crm",
+              "purpose": "Realizar consent aware crm dentro del bloque Activos digitales y captación de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "lead_deduplication_scoring",
+              "title": "Lead Deduplication Scoring",
+              "purpose": "Realizar lead deduplication scoring dentro del bloque Activos digitales y captación de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "measure_cac_conversion_roi",
+              "title": "Measure Cac Conversion Roi",
+              "purpose": "Realizar measure cac conversion roi dentro del bloque Activos digitales y captación de ALPHA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "BETA",
+      "name": "Marketplace y comercio digital",
+      "blocks": [
+        {
+          "id": "seller_catalog",
+          "title": "Vendedores y catálogo",
+          "purpose": "Bloque funcional de BETA / Vendedores y catálogo.",
+          "families": null,
+          "tasks": [
+            {
+              "id": "seller_onboarding",
+              "title": "Seller Onboarding",
+              "purpose": "Realizar seller onboarding dentro del bloque Vendedores y catálogo de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "seller_due_diligence_checklist",
+              "title": "Seller Due Diligence Checklist",
+              "purpose": "Realizar seller due diligence checklist dentro del bloque Vendedores y catálogo de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "accept_seller_terms",
+              "title": "Accept Seller Terms",
+              "purpose": "Realizar accept seller terms dentro del bloque Vendedores y catálogo de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "import_authorized_catalog",
+              "title": "Import Authorized Catalog",
+              "purpose": "Realizar import authorized catalog dentro del bloque Vendedores y catálogo de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "normalize_skus_variants_categories",
+              "title": "Normalize Skus Variants Categories",
+              "purpose": "Realizar normalize skus variants categories dentro del bloque Vendedores y catálogo de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "deduplicate_catalog",
+              "title": "Deduplicate Catalog",
+              "purpose": "Realizar deduplicate catalog dentro del bloque Vendedores y catálogo de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "verify_price_stock_currency_timestamp",
+              "title": "Verify Price Stock Currency Timestamp",
+              "purpose": "Realizar verify price stock currency timestamp dentro del bloque Vendedores y catálogo de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "moderate_rights_and_prohibited_items",
+              "title": "Moderate Rights And Prohibited Items",
+              "purpose": "Realizar moderate rights and prohibited items dentro del bloque Vendedores y catálogo de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "merchandising",
+          "title": "Ofertas y merchandising",
+          "purpose": "Bloque funcional de BETA / Ofertas y merchandising.",
+          "families": null,
+          "tasks": [
+            {
+              "id": "compare_products_sellers",
+              "title": "Compare Products Sellers",
+              "purpose": "Realizar compare products sellers dentro del bloque Ofertas y merchandising de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "calculate_total_price",
+              "title": "Calculate Total Price",
+              "purpose": "Realizar calculate total price dentro del bloque Ofertas y merchandising de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "configure_margin_commission_rules",
+              "title": "Configure Margin Commission Rules",
+              "purpose": "Realizar configure margin commission rules dentro del bloque Ofertas y merchandising de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "schedule_promotions",
+              "title": "Schedule Promotions",
+              "purpose": "Realizar schedule promotions dentro del bloque Ofertas y merchandising de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "optimize_catalog_seo",
+              "title": "Optimize Catalog Seo",
+              "purpose": "Realizar optimize catalog seo dentro del bloque Ofertas y merchandising de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "generate_data_based_recommendations",
+              "title": "Generate Data Based Recommendations",
+              "purpose": "Realizar generate data based recommendations dentro del bloque Ofertas y merchandising de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "orders_operations",
+          "title": "Pedidos y operaciones",
+          "purpose": "Bloque funcional de BETA / Pedidos y operaciones.",
+          "families": null,
+          "tasks": [
+            {
+              "id": "create_cart_checkout",
+              "title": "Create Cart Checkout",
+              "purpose": "Realizar create cart checkout dentro del bloque Pedidos y operaciones de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "create_idempotent_order",
+              "title": "Create Idempotent Order",
+              "purpose": "Realizar create idempotent order dentro del bloque Pedidos y operaciones de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "reserve_stock_if_supported",
+              "title": "Reserve Stock If Supported",
+              "purpose": "Realizar reserve stock if supported dentro del bloque Pedidos y operaciones de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "verify_signed_payment_webhook",
+              "title": "Verify Signed Payment Webhook",
+              "purpose": "Realizar verify signed payment webhook dentro del bloque Pedidos y operaciones de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "validate_order_amount_currency_provider",
+              "title": "Validate Order Amount Currency Provider",
+              "purpose": "Realizar validate order amount currency provider dentro del bloque Pedidos y operaciones de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "track_order_state",
+              "title": "Track Order State",
+              "purpose": "Realizar track order state dentro del bloque Pedidos y operaciones de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "protect_digital_delivery",
+              "title": "Protect Digital Delivery",
+              "purpose": "Realizar protect digital delivery dentro del bloque Pedidos y operaciones de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "track_shipping",
+              "title": "Track Shipping",
+              "purpose": "Realizar track shipping dentro del bloque Pedidos y operaciones de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "manage_returns_refunds_disputes",
+              "title": "Manage Returns Refunds Disputes",
+              "purpose": "Realizar manage returns refunds disputes dentro del bloque Pedidos y operaciones de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "customer_support_escalation",
+              "title": "Customer Support Escalation",
+              "purpose": "Realizar customer support escalation dentro del bloque Pedidos y operaciones de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "reconcile_orders_commissions_settlements",
+              "title": "Reconcile Orders Commissions Settlements",
+              "purpose": "Realizar reconcile orders commissions settlements dentro del bloque Pedidos y operaciones de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "treasury_controls",
+          "title": "Tesorería y controles",
+          "purpose": "Bloque funcional de BETA / Tesorería y controles.",
+          "families": null,
+          "tasks": [
+            {
+              "id": "separate_tax_and_vat",
+              "title": "Separate Tax And Vat",
+              "purpose": "Realizar separate tax and vat dentro del bloque Tesorería y controles de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "separate_fees_and_refunds",
+              "title": "Separate Fees And Refunds",
+              "purpose": "Realizar separate fees and refunds dentro del bloque Tesorería y controles de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "calculate_net_after_reserves",
+              "title": "Calculate Net After Reserves",
+              "purpose": "Realizar calculate net after reserves dentro del bloque Tesorería y controles de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "block_unapproved_seller_settlement",
+              "title": "Block Unapproved Seller Settlement",
+              "purpose": "Realizar block unapproved seller settlement dentro del bloque Tesorería y controles de BETA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "GAMMA",
+      "name": "Investigación de inversión tradicional no cripto",
+      "blocks": [
+        {
+          "id": "permitted_universe",
+          "title": "Universo de activos permitido",
+          "kind": "policy_or_universe",
+          "details": [
+            "physical_gold_and_metals",
+            "listed_equities",
+            "etfs",
+            "regulated_funds",
+            "bonds",
+            "government_debt",
+            "commodities"
+          ]
+        },
+        {
+          "id": "research_analysis",
+          "title": "Investigación y análisis",
+          "purpose": "Bloque funcional de GAMMA / Investigación y análisis.",
+          "families": null,
+          "tasks": [
+            {
+              "id": "identify_exact_instrument",
+              "title": "Identify Exact Instrument",
+              "purpose": "Realizar identify exact instrument dentro del bloque Investigación y análisis de GAMMA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "collect_primary_sources",
+              "title": "Collect Primary Sources",
+              "purpose": "Realizar collect primary sources dentro del bloque Investigación y análisis de GAMMA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "record_price_currency_liquidity_spread_fees",
+              "title": "Record Price Currency Liquidity Spread Fees",
+              "purpose": "Realizar record price currency liquidity spread fees dentro del bloque Investigación y análisis de GAMMA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "fundamental_analysis_if_applicable",
+              "title": "Fundamental Analysis If Applicable",
+              "purpose": "Realizar fundamental analysis if applicable dentro del bloque Investigación y análisis de GAMMA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "assess_market_issuer_concentration_liquidity_fx_risks",
+              "title": "Assess Market Issuer Concentration Liquidity Fx Risks",
+              "purpose": "Realizar assess market issuer concentration liquidity fx risks dentro del bloque Investigación y análisis de GAMMA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "build_adverse_base_favorable_scenarios",
+              "title": "Build Adverse Base Favorable Scenarios",
+              "purpose": "Realizar build adverse base favorable scenarios dentro del bloque Investigación y análisis de GAMMA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "compare_alternatives",
+              "title": "Compare Alternatives",
+              "purpose": "Realizar compare alternatives dentro del bloque Investigación y análisis de GAMMA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "record_horizon_catalysts_invalidation_conditions",
+              "title": "Record Horizon Catalysts Invalidation Conditions",
+              "purpose": "Realizar record horizon catalysts invalidation conditions dentro del bloque Investigación y análisis de GAMMA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "publish_research_note",
+              "title": "Publish Research Note",
+              "purpose": "Realizar publish research note dentro del bloque Investigación y análisis de GAMMA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "schedule_information_alerts",
+              "title": "Schedule Information Alerts",
+              "purpose": "Realizar schedule information alerts dentro del bloque Investigación y análisis de GAMMA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "capital_reserves",
+          "title": "Capital y reservas",
+          "purpose": "Bloque funcional de GAMMA / Capital y reservas.",
+          "families": null,
+          "tasks": [
+            {
+              "id": "separate_confirmed_and_pending_cash",
+              "title": "Separate Confirmed And Pending Cash",
+              "purpose": "Realizar separate confirmed and pending cash dentro del bloque Capital y reservas de GAMMA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "reserve_vat_taxes_refunds_committed_costs",
+              "title": "Reserve Vat Taxes Refunds Committed Costs",
+              "purpose": "Realizar reserve vat taxes refunds committed costs dentro del bloque Capital y reservas de GAMMA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "source_refs[]",
+                "observed_at",
+                "provider_id",
+                "source_payload"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "connector_required_or_awaiting_connector",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "maintain_owner_defined_emergency_reserve",
+              "title": "Maintain Owner Defined Emergency Reserve",
+              "purpose": "Realizar maintain owner defined emergency reserve dentro del bloque Capital y reservas de GAMMA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "calculate_potential_available_capital",
+              "title": "Calculate Potential Available Capital",
+              "purpose": "Realizar calculate potential available capital dentro del bloque Capital y reservas de GAMMA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": true
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            },
+            {
+              "id": "prepare_human_approval_proposal",
+              "title": "Prepare Human Approval Proposal",
+              "purpose": "Realizar prepare human approval proposal dentro del bloque Capital y reservas de GAMMA.",
+              "required_inputs": [
+                "job_id",
+                "request_context"
+              ],
+              "conditional_inputs": [
+                "validated_records[]",
+                "evidence[]"
+              ],
+              "validations": [
+                "Validar esquema y tipos de entrada",
+                "Comprobar pertenencia del worker al Pulpo y al bloque",
+                "Comprobar procedencia, vigencia y evidencia cuando se usen datos externos",
+                "Registrar datos ausentes y no sustituirlos por estimaciones inventadas"
+              ],
+              "outputs": [
+                "status",
+                "result",
+                "evidence[]",
+                "warnings[]",
+                "missing_data[]",
+                "created_at"
+              ],
+              "execution_mode": "internal_deterministic_or_review",
+              "permissions": {
+                "read": true,
+                "write_internal": true,
+                "external_side_effects": false,
+                "spend": false,
+                "transfer": false,
+                "trade": false,
+                "human_approval_required": false
+              },
+              "acceptance_criteria": [
+                "Salida estructurada y trazable",
+                "Errores explícitos y estado normalizado",
+                "Sin afirmaciones de éxito sin evidencia",
+                "Operación repetible sin duplicar efectos externos"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

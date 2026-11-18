@@ -1,0 +1,237 @@
+{
+  "version": "1.0.0",
+  "status": "functional_specification_pending_runtime_wiring",
+  "pulpos": [
+    {
+      "id": "ALPHA",
+      "name": "Afiliación, inteligencia comercial y recolectores Upgrade",
+      "blocks": [
+        {
+          "id": "market_intelligence",
+          "tasks": [
+            "discover_niches",
+            "analyze_demand",
+            "analyze_competitors",
+            "identify_customer_pain",
+            "score_opportunity",
+            "record_sources"
+          ]
+        },
+        {
+          "id": "affiliate_operations",
+          "tasks": [
+            "catalog_programs",
+            "check_eligibility_terms",
+            "compare_commissions",
+            "track_attribution",
+            "track_clicks_leads_conversions",
+            "reconcile_commissions",
+            "alert_terms_changes",
+            "review_ad_disclosure"
+          ]
+        },
+        {
+          "id": "upgrade_collectors",
+          "families": [
+            {
+              "id": "gold_physical_spot",
+              "tasks": [
+                "collect_authorized_quotes",
+                "normalize_currency_unit",
+                "calculate_spread_costs",
+                "record_availability_timestamp"
+              ]
+            },
+            {
+              "id": "gold_linked_instruments",
+              "tasks": [
+                "identify_instrument_issuer",
+                "review_structure_fees_liquidity",
+                "record_risks"
+              ]
+            },
+            {
+              "id": "supply_chain",
+              "tasks": [
+                "research_suppliers",
+                "verify_declared_certifications",
+                "compare_moq_logistics_lead_times_costs"
+              ]
+            },
+            {
+              "id": "market_differentials",
+              "tasks": [
+                "normalize_unit_purity_currency_tax_shipping",
+                "compare_offers",
+                "record_date_and_evidence"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "digital_assets_acquisition",
+          "tasks": [
+            "research_digital_products",
+            "verify_rights_licenses",
+            "draft_product_brief",
+            "draft_landing_and_lead_magnet",
+            "keyword_research",
+            "seo_audit",
+            "build_funnel_draft",
+            "consent_aware_crm",
+            "lead_deduplication_scoring",
+            "measure_cac_conversion_roi"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "BETA",
+      "name": "Marketplace y comercio digital",
+      "blocks": [
+        {
+          "id": "seller_catalog",
+          "tasks": [
+            "seller_onboarding",
+            "seller_due_diligence_checklist",
+            "accept_seller_terms",
+            "import_authorized_catalog",
+            "normalize_skus_variants_categories",
+            "deduplicate_catalog",
+            "verify_price_stock_currency_timestamp",
+            "moderate_rights_and_prohibited_items"
+          ]
+        },
+        {
+          "id": "merchandising",
+          "tasks": [
+            "compare_products_sellers",
+            "calculate_total_price",
+            "configure_margin_commission_rules",
+            "schedule_promotions",
+            "optimize_catalog_seo",
+            "generate_data_based_recommendations"
+          ]
+        },
+        {
+          "id": "orders_operations",
+          "tasks": [
+            "create_cart_checkout",
+            "create_idempotent_order",
+            "reserve_stock_if_supported",
+            "verify_signed_payment_webhook",
+            "validate_order_amount_currency_provider",
+            "track_order_state",
+            "protect_digital_delivery",
+            "track_shipping",
+            "manage_returns_refunds_disputes",
+            "customer_support_escalation",
+            "reconcile_orders_commissions_settlements"
+          ]
+        },
+        {
+          "id": "treasury_controls",
+          "tasks": [
+            "separate_tax_and_vat",
+            "separate_fees_and_refunds",
+            "calculate_net_after_reserves",
+            "block_unapproved_seller_settlement"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "GAMMA",
+      "name": "Investigación de inversión tradicional no cripto",
+      "blocks": [
+        {
+          "id": "permitted_universe",
+          "assets": [
+            "physical_gold_and_metals",
+            "listed_equities",
+            "etfs",
+            "regulated_funds",
+            "bonds",
+            "government_debt",
+            "commodities"
+          ],
+          "excluded": [
+            "cryptocurrencies",
+            "automated_trading",
+            "unauthorized_leveraged_products"
+          ]
+        },
+        {
+          "id": "research_analysis",
+          "tasks": [
+            "identify_exact_instrument",
+            "collect_primary_sources",
+            "record_price_currency_liquidity_spread_fees",
+            "fundamental_analysis_if_applicable",
+            "assess_market_issuer_concentration_liquidity_fx_risks",
+            "build_adverse_base_favorable_scenarios",
+            "compare_alternatives",
+            "record_horizon_catalysts_invalidation_conditions",
+            "publish_research_note",
+            "schedule_information_alerts"
+          ]
+        },
+        {
+          "id": "capital_reserves",
+          "tasks": [
+            "separate_confirmed_and_pending_cash",
+            "reserve_vat_taxes_refunds_committed_costs",
+            "maintain_owner_defined_emergency_reserve",
+            "calculate_potential_available_capital",
+            "prepare_human_approval_proposal"
+          ]
+        }
+      ]
+    }
+  ],
+  "shared_controls": {
+    "states": [
+      "draft",
+      "queued",
+      "running",
+      "awaiting_connector",
+      "awaiting_review",
+      "blocked",
+      "completed",
+      "failed"
+    ],
+    "required_job_fields": [
+      "job_id",
+      "pulpo",
+      "block",
+      "task",
+      "payload_version",
+      "source_refs",
+      "observed_at",
+      "expires_at",
+      "evidence",
+      "assumptions",
+      "missing_data",
+      "cost_estimate",
+      "risk_level",
+      "compliance_checks",
+      "approval_required",
+      "approval_status",
+      "status",
+      "result",
+      "error",
+      "created_at",
+      "updated_at"
+    ],
+    "policies": [
+      "no_fabricated_data_or_revenue",
+      "no_autonomous_spending_or_transfers",
+      "no_autonomous_asset_trading",
+      "no_crypto",
+      "human_approval_for_external_sensitive_actions",
+      "secrets_only_in_hosting",
+      "audit_trail_and_idempotency",
+      "no_auto_code_rewrite_or_deploy"
+    ]
+  }
+}
